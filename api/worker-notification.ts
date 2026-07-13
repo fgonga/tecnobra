@@ -7,8 +7,10 @@ import { MessageLogService } from "./src/services/notification/MessageLogService
  * Worker da fila "notification".
  *
  * Formatos de job suportados:
- *  - { notify: <eventType>, context: { paymentCode? | orderCode?, phone? } }
+ *  - { notify: <eventType>, context: { trabalhadorId? | visitanteId? | ..., phone?, email? },
+ *      attachments?: [{ filename, contentBase64, contentType }] }
  *      → resolve o template ATIVO de cada canal e envia (NotificationService).
+ *        Os anexos (só email) viajam em base64 pela fila e são convertidos aqui.
  *  - { message, to }
  *      → envio cru de SMS (ad-hoc, sem template).
  */
@@ -17,7 +19,16 @@ new Worker(
     async (job) => {
         // Disparo por evento → templates configuráveis
         if (job.data.notify) {
-            const results = await NotificationService.dispatch(job.data.notify, job.data.context ?? {});
+            const attachments = (job.data.attachments ?? []).map((a: any) => ({
+                filename: a.filename,
+                content: Buffer.from(a.contentBase64, "base64"),
+                contentType: a.contentType,
+            }));
+            const results = await NotificationService.dispatch(
+                job.data.notify,
+                job.data.context ?? {},
+                attachments.length ? { attachments } : undefined
+            );
             console.log(`[notify] ${job.data.notify}`, JSON.stringify(results));
             return;
         }

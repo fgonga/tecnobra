@@ -20,6 +20,13 @@ import { EventController } from "../controllers/EventController";
 import { NotificationTemplateController } from "../controllers/NotificationTemplateController";
 import { NotificationTemplateSchema } from "../schema/NotificationTemplateSchema";
 import { UploadService } from "../services/UploadService";
+import { ObrasController } from "../controllers/ObrasController";
+import { ObrasSchema } from "../schema/ObrasSchema";
+import { EmpresasController } from "../controllers/EmpresasController";
+import { EmpresasSchema } from "../schema/EmpresasSchema";
+import { TrabalhadoresController } from "../controllers/TrabalhadoresController";
+import { TrabalhadoresSchema } from "../schema/TrabalhadoresSchema";
+import { CardController } from "../controllers/CardController";
 
 type CrudMethods = "index" | "store" | "show" | "update" | "delete";
 
@@ -32,6 +39,10 @@ export class Routes {
         this.configs(fastify);
         this.uploads(fastify);
         this.crud(fastify, "users", new UsersController(), UsersSchema, null, "users");
+        this.crud(fastify, "obras", new ObrasController(), ObrasSchema, null, "obras");
+        this.crud(fastify, "empresas", new EmpresasController(), EmpresasSchema, null, "empresas");
+        this.trabalhadores(fastify);
+        this.cards(fastify);
         this.notifications(fastify);
         this.insights(fastify);
         this.profiles(fastify);
@@ -73,6 +84,22 @@ export class Routes {
 
         if (allow("delete"))
             fastify.delete(`${base}/:id`, { preHandler: guards }, controller.delete);
+    }
+
+    static trabalhadores(fastify: FastifyInstance) {
+        const guard = [requireSystemRule(fastify, "trabalhadores")];
+        // Rotas específicas ANTES do CRUD (prioridade sobre /:id)
+        fastify.get("/api/v1/trabalhadores/:id/cartao",          { preHandler: guard }, TrabalhadoresController.cartao);
+        fastify.post("/api/v1/trabalhadores/:id/emitir-cartao",  { preHandler: guard }, TrabalhadoresController.emitirCartao);
+        fastify.post("/api/v1/trabalhadores/:id/revogar-cartao", { preHandler: guard }, TrabalhadoresController.revogarCartao);
+        this.crud(fastify, "trabalhadores", new TrabalhadoresController(), TrabalhadoresSchema, null, "trabalhadores");
+    }
+
+    static cards(fastify: FastifyInstance) {
+        // Cartão digital público — sem auth, rate-limited por IP
+        fastify.get("/api/public/cards/:token", {
+            config: { rateLimit: defaultRateLimit(30, "1m") },
+        }, CardController.show);
     }
 
     static notifications(fastify: FastifyInstance) {

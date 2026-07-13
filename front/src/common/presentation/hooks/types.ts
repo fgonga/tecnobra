@@ -98,6 +98,8 @@ type IModules =
   | 'icustomer'
   | 'irouter'
   | 'stock'
+  // Nomes de módulo livres (Tecnobra: Obras, Empresas, Trabalhadores, ...)
+  | (string & {})
 
 export interface IEntitySelectProps<T, U = string> {
   modelValue: any
@@ -140,7 +142,8 @@ export type FilterFieldType =
 
 export interface FilterOption {
   value: string | number | boolean
-  text: string
+  text?: string
+  label?: string
 }
 
 export interface FilterSchemaField<T = EntityType> {

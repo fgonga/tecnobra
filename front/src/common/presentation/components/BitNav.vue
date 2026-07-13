@@ -35,7 +35,19 @@ const modules = [
           },
         ],
       },
-      // Fase 1: Obras, Empresas, Trabalhadores
+      {
+        name: "Obras",
+        icon: "ti ti-building",
+        rules: [{ name: "Obras", route: "obras", identification: "obras" }],
+      },
+      {
+        name: "Pessoal",
+        icon: "ti ti-users",
+        rules: [
+          { name: "Trabalhadores", route: "trabalhadores", identification: "trabalhadores" },
+          { name: "Empresas", route: "empresas", identification: "empresas" },
+        ],
+      },
       // Fase 2: Portaria, Presenças
       // Fase 3: Equipamentos, Materiais
       // Fase 4: Visitantes, Veículos

@@ -17,6 +17,27 @@ export default [
       },
       {
         component: () =>
+          import("@/modules/central/features/obras/presentation/views/index.vue"),
+        name: "obras",
+        path: "obras",
+        meta: { middlewares: ["auth", "role:obras"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/empresas/presentation/views/index.vue"),
+        name: "empresas",
+        path: "empresas",
+        meta: { middlewares: ["auth", "role:empresas"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/trabalhadores/presentation/views/index.vue"),
+        name: "trabalhadores",
+        path: "trabalhadores",
+        meta: { middlewares: ["auth", "role:trabalhadores"] },
+      },
+      {
+        component: () =>
           import("@/modules/central/features/users/presentation/views/index.vue"),
         name: "users",
         path: "users",
