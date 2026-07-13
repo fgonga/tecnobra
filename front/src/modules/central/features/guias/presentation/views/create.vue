@@ -19,6 +19,8 @@
         :searchFields="['nome', 'codigo', 'cliente']"
         :templateSubtitle="(o) => o.codigo"
         placeholder="Procurar obra…"
+        entity-display-name="obra"
+        :modal-columns="[{ key: 'codigo', label: 'Código' }, { key: 'nome', label: 'Nome' }, { key: 'cliente', label: 'Cliente' }]"
         columnClass="col-md-6"
         @update:modelValue="carregarMateriais"
       />
@@ -30,6 +32,8 @@
         :searchFields="['nome', 'nif', 'contacto_nome']"
         :additionalFilters="{ filters: [{ field: 'tipo', operator: '=', value: 'fornecedor' }] }"
         placeholder="Procurar fornecedor…"
+        entity-display-name="fornecedor"
+        :modal-columns="[{ key: 'nome', label: 'Nome' }, { key: 'nif', label: 'NIF' }]"
         columnClass="col-md-6"
       />
       <FormField label="Fornecedor (texto livre)" v-model="form.fornecedor_nome" type="text" columnClass="col-md-6" />

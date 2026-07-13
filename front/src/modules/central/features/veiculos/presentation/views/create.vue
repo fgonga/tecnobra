@@ -43,6 +43,8 @@
         :searchFields="['nome', 'codigo', 'cliente']"
         :templateSubtitle="(o) => o.codigo"
         placeholder="Procurar obra…"
+        entity-display-name="obra"
+        :modal-columns="[{ key: 'codigo', label: 'Código' }, { key: 'nome', label: 'Nome' }, { key: 'cliente', label: 'Cliente' }]"
         :validationError="v$.obra_id.$error ? v$.obra_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('obra_id')"
         columnClass="col-md-6"

@@ -1,504 +1,468 @@
 <!--
-  -  Copyright © 2021 - 2025
-  -  Bantu Internet Technologies, Lda. Todos os direitos reservados.
-  -
-  -  Este ‘software’ é protegido por direitos autorais e é propriedade exclusiva da Bantu Internet Technologies, Lda. Qualquer cópia, distribuição, modificação ou uso não autorizado deste ‘software’, no todo ou em parte, é estritamente proibido e sujeito às penalidades legais aplicáveis.
-  -
-  -   Bantu Internet Technologies, Lda.
-  -   Rua 25 de Abril, Zona Comercial, Benguela, Angola
-  -   geral@bit.ao
-  -   www.bit.ao
-  -
-  -
+  -  Tecnobra — EntitySelect (portado do bantuhub):
+  -  pesquisa server-side com debounce + AbortController, carrega o item já
+  -  selecionado (loadSelectedItem) e, opcionalmente, abre um modal de seleção
+  -  avançada (EntitySelectModal). Parametrizado por `service` + campos.
   -->
-
-<template xmlns="">
+<template>
   <div class="mb-3" :class="columnClass">
     <label v-if="label && showLabel" class="form-label">
       {{ label }}
       <span v-if="required" class="text-danger">*</span>
     </label>
 
-    <BInputGroup :class="{ 'add-modal': addModal }">
-
-      <template v-if="addModal" #append>
-        <b-button variant="light" @click="handleOpenSearchModal">
-          <i class="ti ti-search" />
-        </b-button>
-      </template>
-
-      <multiselect @remove="handleRemove" @select="handleSelect" v-model="selectedValue" :options="items"
-        :multiple="multiple" :searchable="true" :loading="isLoading" :placeholder="placeholder" :disabled="disabled"
-        :close-on-select="!multiple" :clear-on-select="false" :preserve-search="true" :internal-search="false"
-        :show-labels="false" :max-height="300" :track-by="valueField"
-        :option-label="(option: any) => getFieldFromObject(labelField, option)" @search-change="onSearch"
-        @open="handleFocus" :class="[
-          (validationError || serverError) ? 'is-invalid' : ''
-        ]">
-        <template #noResult>
-          <div class="multiselect-no-result">
-            Sem regitos
-          </div>
-        </template>
-
-        <template #noOptions>
-          <div class="multiselect-no-options">
-            Escreva para pesquisar
-          </div>
-        </template>
-
+    <div
+      ref="wrapperRef"
+      class="entity-select-wrapper"
+      :class="{ 'is-invalid': validationError || serverError, 'is-disabled': disabled }"
+    >
+      <multiselect
+        v-model="selectedValue"
+        class="entity-multiselect"
+        :options="items"
+        :multiple="multiple"
+        :searchable="true"
+        :loading="isLoading"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :close-on-select="!multiple"
+        :clear-on-select="false"
+        :preserve-search="true"
+        :internal-search="false"
+        :show-labels="false"
+        :max-height="300"
+        :track-by="valueField"
+        :label="labelField"
+        @select="handleSelect"
+        @remove="handleRemove"
+        @search-change="onSearch"
+        @open="handleOpen"
+        @close="handleClose"
+      >
         <template #option="{ option }">
           <div class="option-item">
-            <div class="option-text">{{ getFieldFromObject(labelField, option) }}</div>
-            <div v-if="templateSubtitle && showSubtitle" class="option-id option-hovered text-gray">
+            <span class="option-text">{{ getFieldFromObject(labelField, option) }}</span>
+            <span v-if="templateSubtitle && showSubtitle" class="option-subtitle text-muted">
               {{ templateSubtitle(option) }}
-            </div>
+            </span>
           </div>
         </template>
 
         <template #singleLabel="{ option }">
-          <div class="selected-item">
-            <span>{{ getFieldFromObject(labelField, option) }}</span>
-            <div v-if="templateSubtitle && showSubtitle" class="option-id">{{ templateSubtitle(option) }}</div>
-          </div>
+          <span>{{ getFieldFromObject(labelField, option) }}</span>
         </template>
 
         <template #tag="{ option, remove }">
-          <div class="multiselect-tag">
-            <span>{{ getFieldFromObject(labelField, option) }}</span>
-            <i class="multiselect-tag-icon" @click="remove(option)"></i>
-          </div>
+          <span class="entity-tag">
+            {{ getFieldFromObject(labelField, option) }}
+            <button type="button" class="entity-tag-remove" @click.stop="remove(option)">
+              <Icon icon="tabler:x" style="width: 10px; height: 10px" />
+            </button>
+          </span>
         </template>
+
+        <template #noResult><div class="multiselect-no-result">Sem registos</div></template>
+        <template #noOptions><div class="multiselect-no-options">Escreva para pesquisar</div></template>
       </multiselect>
-    </BInputGroup>
-    <div v-if="serverError" class="text-danger">{{ serverError }}</div>
-    <div v-if="validationError" class="invalid-feedback d-block">
-      {{ validationError }}
+
+      <button
+        v-if="addModal"
+        type="button"
+        class="entity-select-btn"
+        :disabled="disabled"
+        @click="handleOpenSearchModal"
+      >
+        <Icon icon="tabler:search" />
+      </button>
     </div>
+
+    <div v-if="serverError" class="text-danger small mt-1">{{ serverError }}</div>
+    <div v-if="validationError" class="invalid-feedback d-block">{{ validationError }}</div>
     <div v-if="hint" class="form-text text-muted">{{ hint }}</div>
 
-
+    <EntitySelectModal
+      v-if="addModal && modalMounted"
+      ref="selectModalRef"
+      :service="service"
+      :title="`Selecionar ${entityDisplayName}`"
+      :label-field="labelField"
+      :value-field="valueField"
+      :search-fields="searchFields"
+      :multiple="multiple"
+      :columns="modalColumns"
+      :with="props.with"
+      @confirm="handleSelectionConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, defineAsyncComponent } from 'vue';
-import Multiselect from 'vue-multiselect';
-import 'vue-multiselect/dist/vue-multiselect.css';
-import type {
-  FilterOptions,
-  IEntitySelectProps
-} from '@common/presentation/hooks/types';
-import { BInputGroup } from 'bootstrap-vue-next';
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import Multiselect from 'vue-multiselect'
+import 'vue-multiselect/dist/vue-multiselect.css'
+import { Icon } from '@iconify/vue'
+import EntitySelectModal from './EntitySelectModal.vue'
+import type { FilterOptions } from '@common/presentation/hooks/types'
 
-const props = withDefaults(defineProps(), {
-  label: '',
-  placeholder: 'Escolher',
-  required: false,
-  showLabel: true,
-  disabled: false,
-  validationError: '',
-  serverError: '',
-  hint: '',
-  columnClass: 'col-md-12',
-  searchFields: () => ['name'],
-  labelField: 'name',
+interface Column {
+  key: string
+  label: string
+}
 
-  valueField: 'id',
-  multiple: false,
-  showId: true,
-  additionalFilters: () => ({}),
-  preloadItems: false,
-  watch: 0,
-  addModal: true,
-  showSubtitle: true,
-  entityDisplayName: 'Item',
-  modalColumns: () => [],
+const props = withDefaults(
+  defineProps<{
+    modelValue?: any
+    label?: string
+    placeholder?: string
+    required?: boolean
+    showLabel?: boolean
+    disabled?: boolean
+    validationError?: string
+    serverError?: string
+    hint?: string
+    columnClass?: string
+    service: any
+    searchFields?: string[]
+    labelField?: string
+    valueField?: string
+    templateSubtitle?: (item: any) => string
+    multiple?: boolean
+    showSubtitle?: boolean
+    additionalFilters?: Partial<FilterOptions>
+    preloadItems?: boolean
+    watch?: any
+    with?: string[]
+    perPage?: number
+    addModal?: boolean
+    modalColumns?: Column[]
+    entityDisplayName?: string
+  }>(),
+  {
+    label: '',
+    placeholder: 'Escolher',
+    required: false,
+    showLabel: true,
+    disabled: false,
+    validationError: '',
+    serverError: '',
+    hint: '',
+    columnClass: 'col-md-12',
+    searchFields: () => ['nome'],
+    labelField: 'nome',
+    valueField: 'id',
+    multiple: false,
+    showSubtitle: true,
+    additionalFilters: () => ({}),
+    preloadItems: false,
+    watch: 0,
+    with: () => [],
+    perPage: 15,
+    addModal: false,
+    modalColumns: () => [],
+    entityDisplayName: 'Item',
+  },
+)
+
+const emit = defineEmits(['update:modelValue', 'loaded'])
+
+const items = ref<any[]>([])
+const isLoading = ref(false)
+const searchQuery = ref('')
+const focused = ref(false)
+const selectedValue = ref<any>(props.modelValue ?? null)
+const wrapperRef = ref<HTMLElement | null>(null)
+const selectModalRef = ref<any>(null)
+const modalMounted = ref(false)
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+let fetchAbort: AbortController | null = null
+let unmounted = false
+let modalEl: HTMLElement | null = null
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue !== selectedValue.value) {
+      selectedValue.value = newValue ?? null
+      if (newValue && !hasSelectedItem(newValue)) loadSelectedItem()
+    }
+  },
+  { immediate: true },
+)
+
+// Recarrega quando um filtro dependente (watch) muda ou ao ganhar foco vazio.
+watch(
+  () => props.watch,
+  () => loadItems(true),
+)
+watch(focused, (isFocused) => {
+  if (isFocused && !props.preloadItems && items.value.length === 0) loadItems(true)
 })
 
-const emit = defineEmits(['update:modelValue', 'loaded']);
-
-const items = ref<any[]>([]);
-const isLoading = ref(false);
-const page = ref(1);
-const searchQuery = ref('');
-const totalPages = ref(1);
-const focused = ref(false);
-const selectedValue = ref(null);
-const searchTimer = ref<Timer | null>(null);
-const selectModalRef = ref<any>(null);
-
-
-watch(() => props.modelValue, (newValue) => {
-  if (newValue !== selectedValue.value) {
-    selectedValue.value = newValue;
-
-    if (newValue && !hasSelectedItem(newValue)) {
-      loadSelectedItem();
-    }
-  }
-}, { immediate: true });
-
-const handleSelect = (selectedOption, id) => {
-  emit('update:modelValue', selectedOption);
-
-}
-
-const handleRemove = (removedOption, id) => {
-  emit('update:modelValue', null);
-}
-
-function handleOpenSearchModal() {
-  selectModalRef.value?.show();
-
-  if (selectedValue.value) {
-    selectModalRef.value?.handleItemSelect(selectedValue.value, true)
-  }
-}
-
-function handleSelectionConfirm(selectedItems: any) {
-  if (props.multiple) {
-    emit('update:modelValue', selectedItems);
-    // Adicionar à lista local se não existir
-    selectedItems.forEach(item => {
-      if (!items.value.some(existing => existing[props.valueField] === item[props.valueField])) {
-        items.value.push(item);
-      }
-    });
-  } else {
-    emit('update:modelValue', selectedItems);
-    // Adicionar à lista local se não existir
-    if (selectedItems && !items.value.some(existing => existing[props.valueField] === selectedItems[props.valueField])) {
-      items.value.push(selectedItems);
-    }
-  }
-}
-
-function handleSelectionCancel() {
-
-}
-
-watch([() => props.watch, focused], (newValue) => {
-  loadItems(true)
-});
-
 function getFieldFromObject(field: string, object: Record<string, any>) {
-  return field.split('.').reduce((obj, key) => obj?.[key], object)
+  return field.split('.').reduce((obj: any, key) => obj?.[key], object)
 }
 
-function handleFocus() {
+function handleSelect(option: any) {
+  emit('update:modelValue', option)
+}
+function handleRemove() {
+  emit('update:modelValue', null)
+}
 
-  focused.value = true;
+function handleOpen() {
+  focused.value = true
+  // Deixa o modal pai overflow:visible para o dropdown não ser cortado.
+  modalEl = wrapperRef.value?.closest('.modal') as HTMLElement | null
+  if (modalEl) modalEl.style.overflow = 'visible'
+}
+function handleClose() {
+  if (modalEl) {
+    modalEl.style.overflow = ''
+    modalEl = null
+  }
 }
 
 function hasSelectedItem(value: any): boolean {
-  if (!value) return true;
-
+  if (!value) return true
   if (Array.isArray(value)) {
-    return value.every(v =>
-      items.value.some(item => item[props.valueField] === v)
-    );
+    return value.every((v) =>
+      items.value.some((item) => item[props.valueField] === (typeof v === 'object' ? v[props.valueField] : v)),
+    )
   }
-
   if (typeof value === 'object') {
-    return items.value.some(item =>
-      item[props.valueField] === value[props.valueField]
-    );
+    return items.value.some((item) => item[props.valueField] === value[props.valueField])
   }
-
-  return items.value.some(item => item[props.valueField] === value);
-};
+  return items.value.some((item) => item[props.valueField] === value)
+}
 
 async function loadItems(reset = false) {
-  if (reset) {
-    page.value = 1;
-    items.value = [];
-  }
-
+  if (reset) items.value = []
   try {
-    isLoading.value = true;
+    isLoading.value = true
+    fetchAbort?.abort()
+    fetchAbort = new AbortController()
+    const currentAbort = fetchAbort
 
     const filters: FilterOptions = {
       search: searchQuery.value,
-      page: page.value,
-      perPage: 1000,
+      page: 1,
+      perPage: props.perPage,
       total: 0,
       with: props.with || [],
       columns: [],
       searchable: props.searchFields,
       filters: [],
-      ...props.additionalFilters
-    };
+      ...props.additionalFilters,
+    } as FilterOptions
 
-    const response = await props.service.index(filters);
-    const data = response.data;
-
-    if (data.data) {
-      const newItems = data.data.filter(newItem =>
-        !items.value.some(existingItem => existingItem.id === newItem.id)
-      );
-
-      if (reset) {
-        items.value = data.data;
-      } else {
-        items.value = [...items.value, ...newItems];
-      }
-
-      totalPages.value = data.last_page || 1;
+    const response = await props.service.index(filters)
+    if (currentAbort.signal.aborted || unmounted) return
+    const data = response.data
+    if (data?.data) {
+      items.value = data.data
     }
-
-    emit('loaded', items.value);
+    emit('loaded', items.value)
   } catch (error) {
-    console.error('Error loading items:', error);
+    console.error('EntitySelect: erro ao carregar itens', error)
   } finally {
-    isLoading.value = false;
+    if (!unmounted) isLoading.value = false
   }
-};
+}
 
 async function loadSelectedItem() {
-  if (!props.modelValue || isLoading.value) return;
-
+  if (!props.modelValue || isLoading.value) return
+  const filters = { with: props.with || [], columns: ['*'] }
   try {
-    isLoading.value = true;
-
-    if (Array.isArray(props.modelValue)) {
-      const loadedItems = [];
-
-      for (const value of props.modelValue) {
-        try {
-          const id = typeof value === 'object' ? value[props.valueField] : value;
-          const filters = {
-            with: props.with || [],
-            columns: ["*"],
-          };
-
-          const response = await props.service.show(id, filters);
-          if (response.data) {
-            loadedItems.push(response.data);
-          }
-        } catch (err) {
-          console.error(`Error loading item:`, err);
-        }
+    isLoading.value = true
+    const values = Array.isArray(props.modelValue) ? props.modelValue : [props.modelValue]
+    const loaded: any[] = []
+    for (const value of values) {
+      if (unmounted) break
+      const id = typeof value === 'object' ? value[props.valueField] : value
+      // Se já é um objeto completo, usa-o diretamente.
+      if (typeof value === 'object' && value[props.labelField] !== undefined) {
+        loaded.push(value)
+        continue
       }
-
-      if (loadedItems.length > 0) {
-        items.value = [...items.value, ...loadedItems.filter(item =>
-          !items.value.some(existingItem =>
-            existingItem[props.valueField] === item[props.valueField]
-          )
-        )];
-      }
-    } else {
-      const id = typeof props.modelValue === 'object'
-        ? props.modelValue[props.valueField]
-        : props.modelValue;
-
-      const filters = {
-        with: props.with || [],
-        columns: ["*"],
-      };
-
-      const response = await props.service.show(id, filters);
-
-      if (response.data) {
-        const newItem = response.data;
-
-        if (!items.value.some(item =>
-          item[props.valueField] === newItem[props.valueField]
-        )) {
-          items.value = [...items.value, newItem];
-        }
+      try {
+        const response = await props.service.show(id, filters)
+        if (!unmounted && response.data) loaded.push(response.data)
+      } catch (err) {
+        console.error('EntitySelect: erro ao carregar item selecionado', err)
       }
     }
-  } catch (error) {
-    console.error('Error loading selected item:', error);
+    if (!unmounted && loaded.length) {
+      items.value = [
+        ...items.value,
+        ...loaded.filter((it) => !items.value.some((ex) => ex[props.valueField] === it[props.valueField])),
+      ]
+    }
   } finally {
-    isLoading.value = false;
+    if (!unmounted) isLoading.value = false
   }
-};
+}
 
 function onSearch(query: string) {
-  if (searchTimer.value !== null) {
-    clearTimeout(searchTimer.value);
+  if (searchTimer !== null) clearTimeout(searchTimer)
+  searchQuery.value = query
+  searchTimer = setTimeout(() => {
+    loadItems(true)
+    searchTimer = null
+  }, 500)
+}
+
+// ── Modal de seleção avançada ───────────────────────────────────────────
+async function handleOpenSearchModal() {
+  if (!modalMounted.value) {
+    modalMounted.value = true
+    await nextTick()
   }
+  selectModalRef.value?.show()
+}
 
-  searchQuery.value = query;
-
-  searchTimer.value = setTimeout(() => {
-    loadItems(true);
-    searchTimer.value = null;
-  }, 1500);
-};
+function handleSelectionConfirm(selection: any) {
+  emit('update:modelValue', selection)
+  const arr = Array.isArray(selection) ? selection : [selection]
+  arr.forEach((it: any) => {
+    if (it && !items.value.some((ex) => ex[props.valueField] === it[props.valueField])) {
+      items.value.push(it)
+    }
+  })
+  selectedValue.value = selection
+}
 
 onMounted(() => {
-  if (focused.value || props.preloadItems) {
-    loadItems();
-  }
-
-  if (props.modelValue) {
-    loadSelectedItem();
-  }
-});
-
-defineExpose({
-  loadItems
+  if (props.preloadItems) loadItems(true)
+  if (props.modelValue) loadSelectedItem()
 })
+
+onBeforeUnmount(() => {
+  unmounted = true
+  if (searchTimer !== null) clearTimeout(searchTimer)
+  fetchAbort?.abort()
+  if (modalEl) modalEl.style.overflow = ''
+})
+
+defineExpose({ loadItems })
 </script>
 
-<style>
-.add-modal .multiselect {
-  width: calc(100% - 50px);
+<style scoped>
+.entity-select-wrapper {
+  display: flex;
+  border: 1px solid var(--tblr-border-color, #ced4da);
+  border-radius: 0.375rem;
+  background: var(--tblr-bg-forms, #fff);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.entity-select-wrapper:focus-within {
+  border-color: var(--tblr-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--tblr-primary-rgb), 0.2);
+}
+.entity-select-wrapper.is-invalid {
+  border-color: var(--tblr-danger, #dc3545);
+}
+.entity-select-wrapper.is-disabled {
+  background: var(--tblr-bg-surface-secondary, #f1f3f5);
 }
 
-.multiselect {
-  min-height: 38px;
+.entity-multiselect {
+  flex: 1;
+  min-width: 0;
 }
-
-.multiselect__tags {
-  min-height: 38px;
-  padding: 6px 40px 0 8px;
-  border-radius: 0.25rem;
-  /* border: 1px solid #ced4da; */
+.entity-multiselect :deep(.multiselect__tags) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  min-height: 36px;
+  padding: 0 8px;
 }
-
-.multiselect__placeholder {
+.entity-multiselect :deep(.multiselect__single),
+.entity-multiselect :deep(.multiselect__input),
+.entity-multiselect :deep(.multiselect__placeholder) {
+  background: transparent;
+  margin-bottom: 0;
   padding-top: 0;
-  margin-bottom: 0;
+  align-self: center;
+  line-height: 1.4;
+}
+.entity-multiselect :deep(.multiselect__select) {
+  display: none;
+}
+.entity-multiselect :deep(.multiselect__spinner) {
+  background: transparent;
+}
+.entity-multiselect :deep(.multiselect__spinner::before),
+.entity-multiselect :deep(.multiselect__spinner::after) {
+  border-top-color: var(--tblr-primary);
+  border-right-color: transparent;
 }
 
-.multiselect__input,
-.multiselect__single {
-  margin-bottom: 0;
-  padding: 0;
+.entity-select-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-left: 1px solid var(--tblr-border-color, #ced4da);
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+  background: var(--tblr-bg-surface-secondary, #f1f3f5);
+  color: var(--tblr-secondary, #6c757d);
+  cursor: pointer;
 }
-
-.multiselect__select {
-  height: 38px;
+.entity-select-btn:hover:not(:disabled) {
+  color: var(--tblr-primary);
 }
-
-.multiselect__tag {
-  /* background: #4429f2; */
-  margin-bottom: 4px;
+.entity-select-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
-
-.multiselect__tag-icon:after {
-  /* color: #ffffff; */
-}
-
-.multiselect__tag-icon:focus,
-.multiselect__tag-icon:hover {
-  /* background: #0069d91c; */
-}
-
-.multiselect__option--highlight {
-  /* background: #01091234; */
-}
-
-.multiselect__option--highlight:after {
-  background: #0109129d;
-  /* pressione para selecionar*/
-}
-
-.multiselect.is-invalid .multiselect__tags {
-  /* border-color: #dc3545; */
-}
-
 
 .option-item {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
-
-.option-id {
+.option-subtitle {
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.entity-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(var(--tblr-primary-rgb), 0.1);
+  color: var(--tblr-primary);
+  border: 1px solid rgba(var(--tblr-primary-rgb), 0.25);
+  border-radius: 3px;
+  padding: 1px 6px;
   font-size: 0.75rem;
-  /* color: #6c757d; */
+  margin: 1px 2px 1px 0;
 }
-
-.selected-item {
+.entity-tag-remove {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: rgba(var(--tblr-primary-rgb), 0.15);
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  color: var(--tblr-primary);
 }
-
-.selected-id {
-  font-size: 0.75rem;
-  /* color: #6c757d; */
-}
-
 .multiselect-no-result,
 .multiselect-no-options {
-  padding: 10px 15px;
-}
-
-/* ── Dark mode ─────────────────────────────────────────────────── */
-[data-bs-theme="dark"] .multiselect__tags {
-  background-color: var(--tblr-bg-forms, #1e2635);
-  border-color: var(--tblr-border-color, #3a4460);
-  color: var(--tblr-body-color, #c8cfda);
-}
-
-[data-bs-theme="dark"] .multiselect__input,
-[data-bs-theme="dark"] .multiselect__single {
-  background-color: var(--tblr-bg-forms, #1e2635);
-  color: var(--tblr-body-color, #c8cfda);
-}
-
-[data-bs-theme="dark"] .multiselect__placeholder {
-  color: var(--tblr-secondary, #7a8ba6);
-}
-
-[data-bs-theme="dark"] .multiselect__content-wrapper {
-  background-color: var(--tblr-bg-surface, #1a2234);
-  border-color: var(--tblr-border-color, #3a4460);
-}
-
-[data-bs-theme="dark"] .multiselect__option {
-  background-color: var(--tblr-bg-surface, #1a2234);
-  color: var(--tblr-body-color, #c8cfda);
-}
-
-[data-bs-theme="dark"] .multiselect__option--highlight,
-[data-bs-theme="dark"] .multiselect__option--highlight:after {
-  background-color: var(--tblr-primary, #4429f2);
-  color: #fff;
-}
-
-[data-bs-theme="dark"] .multiselect__option--selected {
-  background-color: rgba(68, 41, 242, 0.15);
-  color: var(--tblr-primary, #4429f2);
-  font-weight: 600;
-}
-
-[data-bs-theme="dark"] .multiselect__option--selected:after {
-  background-color: rgba(68, 41, 242, 0.15);
-  color: var(--tblr-primary, #4429f2);
-}
-
-[data-bs-theme="dark"] .multiselect__select {
-  background: transparent;
-}
-
-[data-bs-theme="dark"] .multiselect__select:before {
-  border-color: var(--tblr-secondary, #7a8ba6) transparent transparent;
-}
-
-[data-bs-theme="dark"] .multiselect__spinner {
-  background: var(--tblr-bg-forms, #1e2635);
-}
-
-[data-bs-theme="dark"] .multiselect__tag {
-  background: var(--tblr-primary, #4429f2);
-}
-
-[data-bs-theme="dark"] .multiselect__tag-icon:after {
-  color: rgba(255,255,255,0.7);
-}
-
-[data-bs-theme="dark"] .multiselect__tag-icon:hover {
-  background: rgba(0,0,0,0.2);
-}
-
-[data-bs-theme="dark"] .multiselect-no-result,
-[data-bs-theme="dark"] .multiselect-no-options {
-  color: var(--tblr-secondary, #7a8ba6);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--tblr-secondary, #6c757d);
 }
 </style>

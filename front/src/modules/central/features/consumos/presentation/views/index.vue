@@ -46,6 +46,8 @@
             :searchFields="['nome', 'codigo', 'cliente']"
             :templateSubtitle="(o) => o.codigo"
             placeholder="Procurar obra…"
+        entity-display-name="obra"
+        :modal-columns="[{ key: 'codigo', label: 'Código' }, { key: 'nome', label: 'Nome' }, { key: 'cliente', label: 'Cliente' }]"
             columnClass="col-md-6"
             @update:modelValue="onObraChange"
           />
@@ -60,6 +62,8 @@
             :watchKey="obraWatch"
             :disabled="!form.obra_id"
             placeholder="Procurar material…"
+            entity-display-name="material"
+            :modal-columns="[{ key: 'nome', label: 'Nome' }, { key: 'unidade', label: 'Unidade' }, { key: 'categoria', label: 'Categoria' }]"
             columnClass="col-md-6"
           />
           <FormField label="Quantidade" v-model="form.quantidade" required type="number" columnClass="col-md-6" />
@@ -73,6 +77,8 @@
             :watchKey="obraWatch"
             :disabled="!form.obra_id"
             placeholder="Procurar trabalhador…"
+            entity-display-name="trabalhador"
+            :modal-columns="[{ key: 'nome', label: 'Nome' }, { key: 'funcao', label: 'Função' }, { key: 'documento', label: 'Documento' }]"
             columnClass="col-md-6"
           />
           <FormField label="Observações" v-model="form.obs" type="text" columnClass="col-12" />

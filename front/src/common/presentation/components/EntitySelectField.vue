@@ -1,10 +1,11 @@
 <!--
- -  Tecnobra — Campo de seleção de entidade (pesquisa assíncrona).
+ -  Tecnobra — Campo de seleção de entidade (pesquisa assíncrona + modal).
  -
  -  Envolve o EntitySelect mas mantém o contrato id-based dos formulários:
  -  - modelValue é o id (número) — não o objeto
  -  - pré-carrega o objeto por id em modo edição
  -  - suporta filtros reativos (ex.: trabalhadores da obra selecionada)
+ -  - mostra o botão de pesquisa com modal de seleção avançada
 -->
 <template>
   <EntitySelect
@@ -25,7 +26,9 @@
     :serverError="serverError"
     :hint="hint"
     :watch="watchKey"
-    :addModal="false"
+    :addModal="addModal"
+    :modalColumns="modalColumns"
+    :entityDisplayName="entityDisplayName"
     :modelValue="objeto"
     @update:modelValue="onUpdate"
   />
@@ -35,6 +38,11 @@
 import { ref, watch } from 'vue'
 import EntitySelect from './EntitySelect.vue'
 import type { CrudService } from '@common/hooks/types'
+
+interface Column {
+  key: string
+  label: string
+}
 
 const props = withDefaults(
   defineProps<{
@@ -55,6 +63,10 @@ const props = withDefaults(
     hint?: string
     /** Muda para forçar recarregar as opções (ex.: quando a obra muda). */
     watchKey?: number
+    /** Mostra o botão de pesquisa que abre o modal de seleção. */
+    addModal?: boolean
+    modalColumns?: Column[]
+    entityDisplayName?: string
   }>(),
   {
     placeholder: 'Escolher…',
@@ -67,6 +79,9 @@ const props = withDefaults(
     serverError: '',
     hint: '',
     watchKey: 0,
+    addModal: true,
+    modalColumns: () => [],
+    entityDisplayName: 'registo',
   }
 )
 
