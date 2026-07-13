@@ -9,11 +9,11 @@
  *  Execução manual: bun artisan.ts alerts:run
  */
 
+import { AsyncTask } from "toad-scheduler";
 import { db } from "../../db/db";
 import { AlertService } from "../../services/AlertService";
 import { configCache } from "../../services/ConfigCache";
 import { ScheduleLogger } from "../../logger/ScheduleLogger";
-import { notificationQueue } from "../../queues";
 
 let lastRunDay: string | null = null;
 
@@ -69,4 +69,7 @@ export async function runUnreturnedToolsAlert(): Promise<number> {
   return criados;
 }
 
-export default unreturnedToolsAlertTick;
+export default new AsyncTask(
+  "unreturnedToolsAlert",
+  unreturnedToolsAlertTick
+);
