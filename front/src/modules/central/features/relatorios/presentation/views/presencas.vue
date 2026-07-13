@@ -2,7 +2,7 @@
  -  Tecnobra — Relatório de presenças (frequência por trabalhador).
 -->
 <template>
-  <div>
+  <div class="container-xl">
     <FiltrosRelatorio :busy="busy" @aplicar="carregar" @export-excel="exportarExcel" @export-pdf="exportarPdf" />
 
     <div ref="conteudo">

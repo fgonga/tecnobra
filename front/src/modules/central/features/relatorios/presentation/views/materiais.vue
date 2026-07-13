@@ -2,7 +2,7 @@
  -  Tecnobra — Relatório de materiais: orçado vs entregue vs consumido.
 -->
 <template>
-  <div>
+  <div class="container-xl">
     <FiltrosRelatorio :busy="busy" @aplicar="carregar" @export-excel="exportarExcel" @export-pdf="exportarPdf" />
 
     <div ref="conteudo">
