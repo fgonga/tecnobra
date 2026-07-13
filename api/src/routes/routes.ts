@@ -12,7 +12,7 @@ import { BaseCrudController } from "../controllers/BaseCrudController";
 import { UsersSchema } from "../schema/UsersSchema";
 import { UsersController } from "../controllers/UsersController";
 import { ConfigController } from "../controllers/ConfigController";
-import { requireSystemRule } from "../middlewares/system.guard";
+import { requireSystemRule, requireAnySystemRule } from "../middlewares/system.guard";
 import { ProfileController } from "../controllers/ProfileController";
 import { InsightsController } from "../controllers/InsightsController";
 import { SavedAnalysesController } from "../controllers/SavedAnalysesController";
@@ -39,6 +39,9 @@ import { GuiasController } from "../controllers/GuiasController";
 import { ConsumosController } from "../controllers/ConsumosController";
 import { OrcamentosController } from "../controllers/OrcamentosController";
 import { MovimentosEquipamentoController } from "../controllers/MovimentosEquipamentoController";
+import { VisitantesController } from "../controllers/VisitantesController";
+import { VeiculosController } from "../controllers/VeiculosController";
+import { VisitantesSchema, VeiculosSchema } from "../schema/VisitantesSchema";
 
 type CrudMethods = "index" | "store" | "show" | "update" | "delete";
 
@@ -59,6 +62,7 @@ export class Routes {
         this.dashboard(fastify);
         this.equipamentos(fastify);
         this.materiais(fastify);
+        this.visitantesVeiculos(fastify);
         this.notifications(fastify);
         this.insights(fastify);
         this.profiles(fastify);
@@ -140,6 +144,16 @@ export class Routes {
         this.crud(fastify, "orcamentos-materiais", new OrcamentosController(), OrcamentosSchema, null, "materiais");
         this.crud(fastify, "guias-remessa", new GuiasController(), GuiasSchema, { only: ["index", "store", "show"] }, "materiais");
         this.crud(fastify, "consumos-materiais", new ConsumosController(), ConsumosSchema, { only: ["index", "store", "show"] }, "materiais");
+    }
+
+    static visitantesVeiculos(fastify: FastifyInstance) {
+        this.crud(fastify, "visitantes", new VisitantesController(), VisitantesSchema, null, "visitantes");
+        // OCR de matrícula — usado na portaria e no registo de veículos
+        fastify.post("/api/v1/veiculos/ocr-matricula", {
+            preHandler: [requireAnySystemRule(fastify, ["portaria", "veiculos"])],
+            schema: VeiculosSchema.ocr,
+        }, VeiculosController.ocrMatricula);
+        this.crud(fastify, "veiculos", new VeiculosController(), VeiculosSchema, null, "veiculos");
     }
 
     static cards(fastify: FastifyInstance) {

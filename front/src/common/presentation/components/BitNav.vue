@@ -73,7 +73,14 @@ const modules = [
           { name: "Consumos", route: "consumos", identification: "materiais" },
         ],
       },
-      // Fase 4: Visitantes, Veículos
+      {
+        name: "Acessos",
+        icon: "ti ti-user-check",
+        rules: [
+          { name: "Visitantes", route: "visitantes", identification: "visitantes" },
+          { name: "Veículos", route: "veiculos", identification: "veiculos" },
+        ],
+      },
       // Fase 5: Desempenho, Alertas, Relatórios
       {
         name: "Definições",

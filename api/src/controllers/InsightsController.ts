@@ -30,7 +30,7 @@ export class InsightsController {
       const dataContext = buildDataContext(req.body)
 
       const message = await client.messages.create({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-5',
         max_tokens: 400,
         system: SYSTEM_ANALYST,
         messages: [
@@ -64,7 +64,7 @@ ${dataContext}`,
       const dataContext = buildDataContext(req.body)
 
       const message = await client.messages.create({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-5',
         max_tokens: 1200,
         system: SYSTEM_ANALYST,
         messages: [
@@ -130,7 +130,7 @@ ${dataContext}`,
       const periodNames = context.map(c => c.nome).join(', ')
 
       const message = await client.messages.create({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-5',
         max_tokens: 800,
         system: SYSTEM_ANALYST,
         messages: [
@@ -192,7 +192,7 @@ ${JSON.stringify(context, null, 2)}`,
       }
 
       const response = await client.messages.create({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-5',
         max_tokens: 600,
         system: `${SYSTEM_ANALYST}
 

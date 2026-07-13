@@ -80,6 +80,20 @@ export default [
       },
       {
         component: () =>
+          import("@/modules/central/features/visitantes/presentation/views/index.vue"),
+        name: "visitantes",
+        path: "visitantes",
+        meta: { middlewares: ["auth", "role:visitantes"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/veiculos/presentation/views/index.vue"),
+        name: "veiculos",
+        path: "veiculos",
+        meta: { middlewares: ["auth", "role:veiculos"] },
+      },
+      {
+        component: () =>
           import("@/modules/central/features/users/presentation/views/index.vue"),
         name: "users",
         path: "users",
