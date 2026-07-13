@@ -1,4 +1,15 @@
 export default [
+  // Raiz e caminhos desconhecidos → painel (o middleware reencaminha
+  // para /central/login se não houver sessão)
+  {
+    path: "/",
+    redirect: "/central/dashboard",
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "nao-encontrado",
+    redirect: "/central/dashboard",
+  },
   {
     component: () =>
       import("@/modules/central/features/utils/presentation/views/unauthorized.vue"),
@@ -7,6 +18,7 @@ export default [
   },
   {
     path: "/central",
+    redirect: "/central/dashboard",
     component: () => import("@components/CentralLayout.vue"),
     children: [
       {
