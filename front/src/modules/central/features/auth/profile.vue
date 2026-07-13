@@ -77,17 +77,17 @@
                     </button>
                   </div>
                 </div>
-                <h3 class="card-title mt-4">Senha</h3>
-                <p class="card-subtitle">Este telefone será usado para acessar sua conta ou alterar sua senha caso esqueça.</p>
+                <h3 class="card-title mt-4">Palavra-passe</h3>
+                <p class="card-subtitle">Este telefone será usado para aceder à sua conta ou alterar a sua palavra-passe caso esqueça.</p>
                 <div class="row g-2 mb-4">
                   <div class="col-auto">
-                    <FormField v-model="passwordForm.oldPassword" placeholder="Senha antiga" type="password" />
+                    <FormField v-model="passwordForm.oldPassword" placeholder="Palavra-passe antiga" type="password" />
                   </div>
                   <div class="col-auto">
-                    <FormField v-model="passwordForm.newPassword" placeholder="Nova senha" type="password" />
+                    <FormField v-model="passwordForm.newPassword" placeholder="Nova palavra-passe" type="password" />
                   </div>
                   <div class="col-auto">
-                    <FormField v-model="passwordForm.confirmPassword" placeholder="Repita nova senha" type="password" />
+                    <FormField v-model="passwordForm.confirmPassword" placeholder="Repita a nova palavra-passe" type="password" />
                   </div>
                   <div class="col-auto">
                     <button class="btn btn-1" :disabled="loadingPassword" @click="updatePassword">
@@ -152,7 +152,7 @@ const updatePhone = async () => {
 
 const updatePassword = async () => {
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    alert("As senhas não coincidem")
+    alert("As palavras-passe não coincidem")
     return
   }
   loadingPassword.value = true

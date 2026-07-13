@@ -42,6 +42,10 @@ import { MovimentosEquipamentoController } from "../controllers/MovimentosEquipa
 import { VisitantesController } from "../controllers/VisitantesController";
 import { VeiculosController } from "../controllers/VeiculosController";
 import { VisitantesSchema, VeiculosSchema } from "../schema/VisitantesSchema";
+import { ReportController } from "../controllers/ReportController";
+import { AlertasController } from "../controllers/AlertasController";
+import { DesempenhosController, MetricasDesempenhoController } from "../controllers/DesempenhosController";
+import { DesempenhosSchema, MetricasDesempenhoSchema } from "../schema/DesempenhosSchema";
 
 type CrudMethods = "index" | "store" | "show" | "update" | "delete";
 
@@ -63,6 +67,9 @@ export class Routes {
         this.equipamentos(fastify);
         this.materiais(fastify);
         this.visitantesVeiculos(fastify);
+        this.report(fastify);
+        this.alertas(fastify);
+        this.desempenho(fastify);
         this.notifications(fastify);
         this.insights(fastify);
         this.profiles(fastify);
@@ -172,6 +179,27 @@ export class Routes {
         fastify.post("/api/v1/notification-templates/test", { preHandler: guard, schema: NotificationTemplateSchema.test }, controller.test);
         // CRUD
         this.crud(fastify, "notification-templates", controller, NotificationTemplateSchema, null, "configs");
+    }
+
+    static report(fastify: FastifyInstance) {
+        const guard = [requireSystemRule(fastify, "reports")];
+        fastify.get("/api/v1/report/presencas",  { preHandler: guard }, ReportController.presencas);
+        fastify.get("/api/v1/report/visitantes", { preHandler: guard }, ReportController.visitantes);
+        fastify.get("/api/v1/report/inventario", { preHandler: guard }, ReportController.inventario);
+        fastify.get("/api/v1/report/materiais",  { preHandler: guard }, ReportController.materiais);
+        fastify.get("/api/v1/report/desempenho", { preHandler: guard }, ReportController.desempenho);
+    }
+
+    static alertas(fastify: FastifyInstance) {
+        const guard = [requireSystemRule(fastify, "alertas")];
+        fastify.get("/api/v1/alertas/abertos/contagem", { preHandler: guard }, AlertasController.contagem);
+        fastify.post("/api/v1/alertas/:id/resolver",    { preHandler: guard }, AlertasController.resolver);
+        this.crud(fastify, "alertas", new AlertasController(), null, { only: ["index", "show"] }, "alertas");
+    }
+
+    static desempenho(fastify: FastifyInstance) {
+        this.crud(fastify, "metricas-desempenho", new MetricasDesempenhoController(), MetricasDesempenhoSchema, null, "desempenho");
+        this.crud(fastify, "desempenhos", new DesempenhosController(), DesempenhosSchema, null, "desempenho");
     }
 
     static insights(fastify: FastifyInstance) {

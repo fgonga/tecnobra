@@ -20,7 +20,7 @@
           <span>{{ userRoles.find(r => r.value === row.value)?.label || '-' }}</span>
         </template>
         <template #row-actions="{ row }">
-          <b-button variant="btn2" href="#" class="me-2" :title="'Redefinir senha de ' + row.name" @click.prevent="handleResetPassword(row)">
+          <b-button variant="btn2" href="#" class="me-2" :title="'Redefinir a palavra-passe de ' + row.name" @click.prevent="handleResetPassword(row)">
             <IconKey size="15" />
           </b-button>
         </template>
@@ -61,12 +61,12 @@ const crudService = useCrud({
 });
 
 async function handleResetPassword(row: any) {
-  if (!confirm(`Redefinir senha de "${row.name}" para o padrão?`)) return;
+  if (!confirm(`Redefinir a palavra-passe de "${row.name}" para o padrão?`)) return;
   try {
     await UsersService.resetPassword(row.id);
-    notification.success('Senha redefinida para o padrão.');
+    notification.success('Palavra-passe redefinida para o padrão.');
   } catch {
-    notification.error('Erro ao redefinir senha.');
+    notification.error('Erro ao redefinir a palavra-passe.');
   }
 }
 </script>

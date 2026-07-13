@@ -81,7 +81,21 @@ const modules = [
           { name: "Veículos", route: "veiculos", identification: "veiculos" },
         ],
       },
-      // Fase 5: Desempenho, Alertas, Relatórios
+      {
+        name: "Desempenho",
+        icon: "ti ti-chart-bar",
+        rules: [{ name: "Desempenho", route: "desempenho", identification: "desempenho" }],
+      },
+      {
+        name: "Alertas",
+        icon: "ti ti-bell",
+        rules: [{ name: "Alertas", route: "alertas", identification: "alertas" }],
+      },
+      {
+        name: "Relatórios",
+        icon: "ti ti-report-analytics",
+        rules: [{ name: "Relatórios", route: "relatorios", identification: "reports" }],
+      },
       {
         name: "Definições",
         icon: "ti ti-adjustments",

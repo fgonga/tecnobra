@@ -1,9 +1,9 @@
 // errorsMap.ts
 export const ErrorsMap = {
   AUTH: {
-    USER_NOT_FOUND: { code: "11", message: "Usuário não encontrado." },
-    WRONG_PASSWORD: { code: "12", message: "Senha incorreta." },
-    PASSWORD_EXPIRED: { code: "13", message: "Senha expirada." },
+    USER_NOT_FOUND: { code: "11", message: "Utilizador não encontrado." },
+    WRONG_PASSWORD: { code: "12", message: "Palavra-passe incorreta." },
+    PASSWORD_EXPIRED: { code: "13", message: "Palavra-passe expirada." },
   },
   PAYMENT: {
     TOO_MANY_ATTEMPTS: { code: "21", message: "Muitas tentativas de checkout. Tente novamente mais tarde." },

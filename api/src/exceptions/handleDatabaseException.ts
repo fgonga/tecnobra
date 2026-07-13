@@ -33,7 +33,7 @@ export function handleDatabaseException(err: QueryError): DatabaseErrorHandled {
         message = "Chave estrangeira não encontrada";
         break;
       case "ER_ROW_IS_REFERENCED":
-        message = "Não é possível excluir registro referenciado";
+        message = "Não é possível eliminar registro referenciado";
         break;
       case "ER_PARSE_ERROR":
         message = "Erro de sintaxe SQL";

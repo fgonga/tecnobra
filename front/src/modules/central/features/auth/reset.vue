@@ -20,14 +20,14 @@
         <div>
           <h2 class="alert-title mb-1 text-center mb-3 mt-3">Proteja a sua conta</h2>
           <p class="mb-2">
-            Está a usar uma <strong>senha padrão</strong>. Altere-a agora por segurança.
+            Está a usar uma <strong>palavra-passe padrão</strong>. Altere-a agora por segurança.
           </p>
           <p class="mb-2">
             Confirme que está no site oficial:
             <strong class="text-primary">https://checkout.academiatreesix.com</strong>
           </p>
           <p class="mb-0">
-            Nos <strong>nunca solicitamos senhas</strong> por e-mail, SMS ou WhatsApp.
+            Nos <strong>nunca pedimos palavras-passe</strong> por e-mail, SMS ou WhatsApp.
           </p>
         </div>
       </div>
@@ -37,17 +37,17 @@
 
           <div class="row g-3 mb-3">
             <div class="col-12">
-              <FormField v-model="passwordForm.newPassword" placeholder="Nova senha" type="password" />
+              <FormField v-model="passwordForm.newPassword" placeholder="Nova palavra-passe" type="password" />
             </div>
             <div class="col-12">
-              <FormField v-model="passwordForm.confirmPassword" placeholder="Confirmar nova senha" type="password" />
+              <FormField v-model="passwordForm.confirmPassword" placeholder="Confirmar a nova palavra-passe" type="password" />
             </div>
           </div>
 
           <div class="d-flex justify-content-center">
             <button class="btn btn-primary w-100" :disabled="loadingPassword" @click="updatePassword">
               <span v-if="loadingPassword"><i class="ti ti-loader ti-spin me-2"></i> A atualizar...</span>
-              <span v-else>Guardar nova senha</span>
+              <span v-else>Guardar nova palavra-passe</span>
             </button>
           </div>
         </div>

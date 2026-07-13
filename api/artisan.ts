@@ -56,6 +56,18 @@ program
   .description("Redefine a palavra-passe de um utilizador (username ou telefone)")
   .action((identifier, password) => run("reset-password.ts", [identifier, password]));
 
+// ─── Alertas ──────────────────────────────────────────────────────────────────
+
+program
+  .command("alerts:run")
+  .description("Executa já o alerta de ferramentas não devolvidas")
+  .action(async () => {
+    const { runUnreturnedToolsAlert } = await import("./src/schedules/tasks/unreturnedToolsAlert.ts");
+    const criados = await runUnreturnedToolsAlert();
+    console.log(`${criados} alerta(s) criado(s).`);
+    process.exit(0);
+  });
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function run(script: string, args: string[] = []) {

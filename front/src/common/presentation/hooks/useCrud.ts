@@ -248,7 +248,7 @@ export function useCrud<T extends Model, ID = string | number>(options: CrudOpti
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Sim, excluir!',
+        confirmButtonText: 'Sim, eliminar!',
         cancelButtonText: 'Cancelar',
         preConfirm: async () => {
           Swal.showLoading()
@@ -266,8 +266,8 @@ export function useCrud<T extends Model, ID = string | number>(options: CrudOpti
             onSuccess('destroy', id)
              notification.success('Operação concluida.');
           } catch (error) {
-            console.error('Erro ao excluir:', error)
-            Swal.showValidationMessage(`Erro ao excluir: ${error}`)
+            console.error('Erro ao eliminar:', error)
+            Swal.showValidationMessage(`Erro ao eliminar: ${error}`)
           } finally {
             busy.value.delete = false
           }

@@ -14,7 +14,7 @@ export class UsersController extends BaseCrudController<UsersService> {
       const { id } = req.params as any;
       const defaultPassword = config.server.defaultPassword;
       await UsersService.resetPassword(Number(id), defaultPassword);
-      reply.code(200).send({ success: true, message: 'Senha redefinida para o padrão.' });
+      reply.code(200).send({ success: true, message: 'Palavra-passe redefinida para o padrão.' });
     } catch (err: any) {
       handleControllerError(reply, err);
     }

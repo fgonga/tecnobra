@@ -73,7 +73,7 @@ const props = withDefaults(defineProps<Props>(), {
 const copyValue = () => {
     if (props.copyable && props.value) {
         navigator.clipboard.writeText(String(props.value));
-        // Opcional: adicionar algum feedback visual para o usuário
+        // Opcional: adicionar algum feedback visual para o utilizador
     }
 };
 

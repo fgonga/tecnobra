@@ -46,38 +46,38 @@
             </button>
           </form>
 
-          <!-- Step 2: Nova senha -->
+          <!-- Step 2: Nova palavra-passe -->
           <form v-else-if="steps === 2" @submit.prevent="submitNewPassword">
             <div class="mb-3">
-              <label class="form-label">Nova senha</label>
+              <label class="form-label">Nova palavra-passe</label>
               <input
                 type="password"
                 v-model="credentials.password"
                 class="form-control"
-                placeholder="Nova senha"
+                placeholder="Nova palavra-passe"
                 required
               >
             </div>
             <div class="mb-3">
-              <label class="form-label">Repetir senha</label>
+              <label class="form-label">Repetir palavra-passe</label>
               <input
                 type="password"
                 v-model="credentials.passwordConfirmation"
                 class="form-control"
-                placeholder="Repetir senha"
+                placeholder="Repetir palavra-passe"
                 required
               >
             </div>
             <button type="submit" class="btn btn-primary w-100" :disabled="loading">
-              {{ loading ? "Salvando..." : "Atualizar senha" }}
+              {{ loading ? "A guardar..." : "Atualizar palavra-passe" }}
             </button>
           </form>
 
           <!-- Step 3: Finalizado -->
           <div v-else class="text-center">
             <i class="ti ti-check-circle text-success" style="font-size: 48px;"></i>
-            <h5 class="mt-3">Senha redefinida com sucesso!</h5>
-            <p class="text-muted">Agora já pode entrar com a nova senha.</p>
+            <h5 class="mt-3">Palavra-passe redefinida com sucesso!</h5>
+            <p class="text-muted">Agora já pode entrar com a nova palavra-passe.</p>
             <router-link class="btn btn-primary" to="/central/login">Ir para login </router-link>
           </div>
         </div>
@@ -137,7 +137,7 @@ const submitCode = async () => {
 }
 const submitNewPassword = async () => {
   if (credentials.value.password !== credentials.value.passwordConfirmation) {
-    errorMessage.value = "As senhas não coincidem"
+    errorMessage.value = "As palavras-passe não coincidem"
     return
   }
   loading.value = true
@@ -146,7 +146,7 @@ const submitNewPassword = async () => {
     await authService.resetPassword(credentials.value.phone, credentials.value.password)
     steps.value = 3
   } catch (err: any) {
-    errorMessage.value = err.response?.data?.message || "Erro ao redefinir senha"
+    errorMessage.value = err.response?.data?.message || "Erro ao redefinir a palavra-passe"
     errorType.value = err.response?.data?.type || "danger"
   } finally {
     loading.value = false

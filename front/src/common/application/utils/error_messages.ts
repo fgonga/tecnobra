@@ -76,7 +76,7 @@ class ErrorMessages {
   static e401(): ErrorResponse {
     return {
       titulo: '[401] Não autorizado',
-      mensagem: 'Você ou o seu grupo de usuários não tem autorização para visualizar este recurso.',
+      mensagem: 'Você ou o seu grupo de utilizadores não tem autorização para visualizar este recurso.',
       solucao: 'Solicite ao administrador do sistema que lhe conceda a devida autorização.'
     };
   }

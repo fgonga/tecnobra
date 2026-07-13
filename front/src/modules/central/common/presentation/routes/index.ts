@@ -94,6 +94,27 @@ export default [
       },
       {
         component: () =>
+          import("@/modules/central/features/relatorios/presentation/views/hub.vue"),
+        name: "relatorios",
+        path: "relatorios",
+        meta: { middlewares: ["auth", "role:reports"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/desempenho/presentation/views/index.vue"),
+        name: "desempenho",
+        path: "desempenho",
+        meta: { middlewares: ["auth", "role:desempenho"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/alertas/presentation/views/index.vue"),
+        name: "alertas",
+        path: "alertas",
+        meta: { middlewares: ["auth", "role:alertas"] },
+      },
+      {
+        component: () =>
           import("@/modules/central/features/users/presentation/views/index.vue"),
         name: "users",
         path: "users",

@@ -38,13 +38,13 @@
               <label class="form-label">
                 Palavra-passe
                 <span class="form-label-description">
-                  <router-link to="/central/forgot">Esqueci a senha</router-link>
+                  <router-link to="/central/forgot">Esqueci-me da palavra-passe</router-link>
                 </span>
               </label>
               <div class="input-group input-group-flat">
                 <FormField   :tabindex="2"   type="password"
                              v-model="credentials.password"
-                             placeholder="Sua senha"
+                             placeholder="A sua palavra-passe"
                              autocomplete="off"
                              required/>
               </div>

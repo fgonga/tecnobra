@@ -68,17 +68,17 @@
       />
       <div class="col-md-6">
         <FormField
-          label="Senha"
+          label="Palavra-passe"
           v-model="form.password"
           type="password"
-          placeholder="Senha do utilizador"
+          placeholder="Palavra-passe do utilizador"
           autocomplete="off"
           :serverError="form.errors?.get('password')"
           class="flex-grow-1"
-          hint="Mínimo 6 caracteres. Deixe em branco para manter a senha atual. Senha padrão: treesix"
+          hint="Mínimo 6 caracteres. Deixe em branco para manter a palavra-passe atual. Palavra-passe padrão: treesix"
         />
-        <b-button  variant="default" @click="generatePassword"  title="Gerar senha aleatória">
-          <IconLockPassword size="15" class="me-2"/> Gerar senha
+        <b-button  variant="default" @click="generatePassword"  title="Gerar palavra-passe aleatória">
+          <IconLockPassword size="15" class="me-2"/> Gerar palavra-passe
         </b-button>
       </div>
       <FormField
