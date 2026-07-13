@@ -45,6 +45,41 @@ export default [
       },
       {
         component: () =>
+          import("@/modules/central/features/equipamentos/presentation/views/index.vue"),
+        name: "equipamentos",
+        path: "equipamentos",
+        meta: { middlewares: ["auth", "role:equipamentos"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/materiais/presentation/views/index.vue"),
+        name: "materiais",
+        path: "materiais",
+        meta: { middlewares: ["auth", "role:materiais"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/materiais/presentation/views/stock.vue"),
+        name: "stock",
+        path: "stock",
+        meta: { middlewares: ["auth", "role:materiais"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/guias/presentation/views/index.vue"),
+        name: "guias",
+        path: "guias",
+        meta: { middlewares: ["auth", "role:materiais"] },
+      },
+      {
+        component: () =>
+          import("@/modules/central/features/consumos/presentation/views/index.vue"),
+        name: "consumos",
+        path: "consumos",
+        meta: { middlewares: ["auth", "role:materiais"] },
+      },
+      {
+        component: () =>
           import("@/modules/central/features/users/presentation/views/index.vue"),
         name: "users",
         path: "users",

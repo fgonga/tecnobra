@@ -56,7 +56,23 @@ const modules = [
           { name: "Presenças", route: "presencas", identification: "portaria" },
         ],
       },
-      // Fase 3: Equipamentos, Materiais
+      {
+        name: "Equipamentos",
+        icon: "ti ti-tool",
+        rules: [
+          { name: "Equipamentos", route: "equipamentos", identification: "equipamentos" },
+        ],
+      },
+      {
+        name: "Materiais",
+        icon: "ti ti-packages",
+        rules: [
+          { name: "Materiais", route: "materiais", identification: "materiais" },
+          { name: "Painel de stock", route: "stock", identification: "materiais" },
+          { name: "Guias de remessa", route: "guias", identification: "materiais" },
+          { name: "Consumos", route: "consumos", identification: "materiais" },
+        ],
+      },
       // Fase 4: Visitantes, Veículos
       // Fase 5: Desempenho, Alertas, Relatórios
       {

@@ -31,6 +31,14 @@ import { ScanController } from "../controllers/ScanController";
 import { ScanSchema } from "../schema/ScanSchema";
 import { MovimentosController } from "../controllers/MovimentosController";
 import { DashboardController } from "../controllers/DashboardController";
+import { EquipamentosController } from "../controllers/EquipamentosController";
+import { EquipamentosSchema } from "../schema/EquipamentosSchema";
+import { MateriaisController } from "../controllers/MateriaisController";
+import { MateriaisSchema, OrcamentosSchema, GuiasSchema, ConsumosSchema } from "../schema/MateriaisSchema";
+import { GuiasController } from "../controllers/GuiasController";
+import { ConsumosController } from "../controllers/ConsumosController";
+import { OrcamentosController } from "../controllers/OrcamentosController";
+import { MovimentosEquipamentoController } from "../controllers/MovimentosEquipamentoController";
 
 type CrudMethods = "index" | "store" | "show" | "update" | "delete";
 
@@ -49,6 +57,8 @@ export class Routes {
         this.cards(fastify);
         this.portaria(fastify);
         this.dashboard(fastify);
+        this.equipamentos(fastify);
+        this.materiais(fastify);
         this.notifications(fastify);
         this.insights(fastify);
         this.profiles(fastify);
@@ -112,6 +122,24 @@ export class Routes {
 
     static dashboard(fastify: FastifyInstance) {
         fastify.get("/api/v1/report-dashboard", { preHandler: [requireSystemRule(fastify, "dashboard")] }, DashboardController.dashboard);
+    }
+
+    static equipamentos(fastify: FastifyInstance) {
+        const guard = [requireSystemRule(fastify, "equipamentos")];
+        // Rotas específicas ANTES do CRUD
+        fastify.post("/api/v1/equipamentos/:id/levantar", { preHandler: guard, schema: EquipamentosSchema.levantar }, EquipamentosController.levantar);
+        fastify.post("/api/v1/equipamentos/:id/devolver", { preHandler: guard, schema: EquipamentosSchema.devolver }, EquipamentosController.devolver);
+        this.crud(fastify, "equipamentos", new EquipamentosController(), EquipamentosSchema, null, "equipamentos");
+        this.crud(fastify, "movimentos-equipamento", new MovimentosEquipamentoController(), null, { only: ["index", "show"] }, "equipamentos");
+    }
+
+    static materiais(fastify: FastifyInstance) {
+        const guard = [requireSystemRule(fastify, "materiais")];
+        fastify.get("/api/v1/obras/:id/stock", { preHandler: guard }, MateriaisController.stock);
+        this.crud(fastify, "materiais", new MateriaisController(), MateriaisSchema, null, "materiais");
+        this.crud(fastify, "orcamentos-materiais", new OrcamentosController(), OrcamentosSchema, null, "materiais");
+        this.crud(fastify, "guias-remessa", new GuiasController(), GuiasSchema, { only: ["index", "store", "show"] }, "materiais");
+        this.crud(fastify, "consumos-materiais", new ConsumosController(), ConsumosSchema, { only: ["index", "store", "show"] }, "materiais");
     }
 
     static cards(fastify: FastifyInstance) {
