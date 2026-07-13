@@ -9,14 +9,12 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue'
 import CardSelectorHub from '@components/CardSelectorHub.vue'
-import { IconActivity, IconLifebuoy, IconUsers, IconShieldLock, IconFlask } from '@tabler/icons-vue'
+import { IconActivity, IconUsers, IconShieldLock } from '@tabler/icons-vue'
 import { useAuthStore } from '@common/presentation/stores/auth_store.ts'
 
 import Users from '@/modules/central/features/users/presentation/views/index.vue'
 import Profiles from '@/modules/central/features/profiles/presentation/views/index.vue'
 import Events from '@/modules/central/features/events.vue'
-import Helpdesk from '@/modules/central/features/helpdesk/presentation/views/index.vue'
-import Playground from '@/modules/central/features/playground/presentation/views/index.vue'
 
 const auth = useAuthStore()
 
@@ -54,23 +52,6 @@ const cards: AdminCard[] = [
     icon: markRaw(IconActivity),
     color: 'teal',
     component: markRaw(Events),
-  },
-  {
-    key: 'helpdesk',
-    title: 'Helpdesk',
-    description: 'Tickets de suporte e conciliações manuais.',
-    icon: markRaw(IconLifebuoy),
-    color: 'orange',
-    component: markRaw(Helpdesk),
-  },
-  {
-    key: 'playground',
-    title: 'Playground',
-    description: 'Testar integrações externas (Vendus, SMS, WhatsApp, Thinkific).',
-    icon: markRaw(IconFlask),
-    color: 'cyan',
-    component: markRaw(Playground),
-    rule: 'playground',
   },
 ]
 

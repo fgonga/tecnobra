@@ -2,7 +2,10 @@ import {BaseModel} from "./base.model";
 import argon2 from "argon2";
 
 export type UserType = "superadmin" | "admin" | "user" | "account" | "helper";
-export type SystemRules = "*" | "orders" | "payments" | "coupons" | "config" | 'influencers' | "users" | "reports";
+export type SystemRules =
+  | "*" | "dashboard" | "obras" | "empresas" | "trabalhadores" | "portaria"
+  | "equipamentos" | "materiais" | "visitantes" | "veiculos" | "desempenho"
+  | "alertas" | "reports" | "users" | "configs";
 
 export interface User {
   id?: number;
@@ -16,13 +19,13 @@ export interface User {
 
 export class UserModel extends BaseModel {
   static tableName = "users";
-  static allowedColumns = ["id","name","username","phone","status","role","created_at","updated_at"];
+  static allowedColumns = ["id","name","username","phone","email","status","role","created_at","updated_at"];
   static sensitiveColumns = ["password"];
   static async create(data: Record<string, any>, connection?: any): Promise<any> {
     if (data.password) {
       data.password = await argon2.hash(data.password);
     } else {
-      data.password = await argon2.hash("treesix");
+      data.password = await argon2.hash("tecnobra");
     }
     const created = await this.genericCreate(data, connection);
     delete created.password;

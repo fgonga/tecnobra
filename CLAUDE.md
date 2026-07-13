@@ -1,140 +1,91 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guia para o Claude Code ao trabalhar neste repositório.
 
-The monorepo-level `../CLAUDE.md` covers the overall tech stack and the three platforms (checkout/estudantes/parceiros). This file is specific to the **checkout** platform and adds detail that cannot be inferred from the monorepo file or the file tree.
+**Tecnobra** — sistema de gestão de obras: registo de entradas/saídas de
+trabalhadores, visitantes, equipamentos e materiais com códigos QR,
+alertas inteligentes e relatórios em tempo real. Todo o texto de UI e
+mensagens é em **português de Portugal**.
 
-## Top-level layout
+## Estrutura
 
-- `api/` — Fastify + Bun backend, MySQL (custom `BaseModel`, no Prisma), Redis/BullMQ, Socket.IO, Winston
-- `front/` — Vue 3 + Vite frontend (dev port **8000**, Bootstrap 5 + bootstrap-vue-next + Tabler)
-- `redirector/` — small Go service (`main.go`, systemd unit in `redirector.service`) that handles short-URL redirects; independent from the Bun backend
+- `api/` — Fastify + Bun, MySQL (`BaseModel` custom, sem ORM), Redis/BullMQ, Socket.IO
+- `front/` — Vue 3 + Vite (porta **9300**), Bootstrap 5 + bootstrap-vue-next + Tabler
 
-## Commands
+## Comandos
 
 ### Backend (`api/`)
 
 ```bash
-bun --watch index.ts              # Main HTTP + Socket.IO server (dev)
-bun run express.ts                # Bull-Board UI at /bull (separate process)
-bun run socket-server.ts          # Standalone socket server
-bun run worker-<name>.ts          # Individual BullMQ workers (see list below)
-bun run mock                      # Mock server (src/mock-server/index.ts)
-```
-
-There is no lint/test/typecheck pipeline configured in `api/package.json`. Verify changes by running the server and watching logs.
-
-**CLI (`artisan.ts`)** — Laravel-style operator CLI. Prefer this over invoking the root scripts directly:
-
-```bash
-bun artisan.ts db:fresh                                 # Drop + migrate + setup + seed
-bun artisan.ts db:migrate                               # migration.ts
-bun artisan.ts db:setup                                 # Admin user + base config
-bun artisan.ts db:seed --orders 200 --influencers 5     # seed.ts
-bun artisan.ts db:seed:wallet                           # migrate-wallet.ts
+bun --watch index.ts              # API + Socket.IO (dev, porta 9100)
+bun run express.ts                # Bull-Board em /bull
+bun run worker-notification.ts    # Worker da fila notification
+bun run worker-event.ts           # Worker da fila system-events
+bun artisan.ts db:fresh           # Recria BD + setup + seed demo
+bun artisan.ts db:setup           # Admin, perfis, parametrização, templates
 bun artisan.ts user:reset-password <id> <password>
-bun artisan.ts payments:recover --start YYYY-MM-DD --end YYYY-MM-DD [--dry]
 ```
 
-When adding a new root-level script under `api/`, also register it as an `artisan` subcommand so the CLI stays the canonical entry point.
+Não há pipeline de lint/teste no `api/` — verificar alterações executando o
+servidor e exercitando endpoints com curl.
 
 ### Frontend (`front/`)
 
 ```bash
-npm run dev              # Vite on :8000
-npm run type-check       # vue-tsc --build
+npm run dev              # Vite em :9300
+npm run type-check       # vue-tsc (o projeto herdou ~170 erros pré-existentes)
 npm run lint             # ESLint --fix
-npm run format           # Prettier on src/
 npm run build            # vite build --mode prod
-npm run build:dev        # --mode dev
-npm run build:local      # --mode local
 ```
 
-## Process topology (PM2)
+## Processos PM2 (`api/ecosystem.config.cjs`)
 
-`api/ecosystem.config.cjs` defines **8 long-running processes** — changes that affect queues, schedulers, or the socket server must be tested across all of them, not just `index.ts`:
-
-| Process | Script | Responsibility |
+| Processo | Script | Responsabilidade |
 |---|---|---|
-| `index` | `index.ts` | Fastify HTTP API + Socket.IO gateway + scheduled cron jobs (`src/schedules/kernel`) |
-| `express` | `express.ts` | Bull-Board UI at `/bull` (basic auth via `BULL_PASSWORD`) |
-| `worker-enrolment` | `worker-enrolment.ts` | Consumes `enrolment` queue |
-| `worker-notification` | `worker-notification.ts` | Consumes `notification` queue — resolves templates via `NotificationService` (SMS/WhatsApp) + raw `{message}` sends |
-| `worker-payment-success` | `worker-payment-success.ts` | Consumes `payments-success` |
-| `worker-payment-failed` | `worker-payment-failed.ts` | Consumes `payments-failed` |
-| `worker-event` | `worker-event.ts` | Consumes `system-events` |
-| `worker-wallet` | `worker-wallet.ts` | Consumes `wallet-payments` |
+| `tecnobra-api` | `index.ts` | API Fastify + Socket.IO + cron (`src/schedules/kernel`) |
+| `tecnobra-bull` | `express.ts` | UI Bull-Board em `/bull` |
+| `tecnobra-worker-notification` | `worker-notification.ts` | Fila `notification` (SMS/WhatsApp/email por template) |
+| `tecnobra-worker-event` | `worker-event.ts` | Fila `system-events` |
 
-Queues are declared in `src/queues/index.ts`; each worker is a dedicated top-level `.ts` file. Use `pm2 restart all` after changes (per user memory — no confirmation needed).
+## Receita para nova feature CRUD (backend)
 
-`index.ts` itself registers the cron jobs from `src/schedules/kernel.ts` via `@fastify/schedule` — cron code runs inside the main API process, not in a separate worker.
+1. DDL em `api/src/db/migrations/init.sql` (dev) ou novo `updateN.sql` (produção)
+2. Model em `src/models/<nome>.model.ts` — `extends BaseModel`; preencher
+   `tableName`, `allowedColumns`, `allowedRelations`, `sensitiveColumns`
+   e `static create` → `genericCreate`
+3. Service `extends BaseCrudService`, Controller `extends BaseCrudController`
+4. Schema AJV em `src/schema/` (com `additionalProperties: false`)
+5. Rota: `this.crud(fastify, "<plural>", ctrl, Schema, opts?, "<regra>")`
+   em `src/routes/routes.ts` — rotas estáticas custom ANTES do crud()
 
-## Backend architecture specifics
+Regras de sistema em `src/models/profile.model.ts` (`ALL_SYSTEM_RULES`):
+`dashboard, obras, empresas, trabalhadores, portaria, equipamentos,
+materiais, visitantes, veiculos, desempenho, alertas, reports, users, configs, *`.
 
-### `BaseModel` (`src/models/base.model.ts`)
+## Receita para nova feature admin (frontend)
 
-All MySQL models extend `BaseModel`. Key conventions **enforced by the base class** — violating these bypasses input-safety checks:
+Copiar a estrutura de uma feature existente em
+`front/src/modules/central/features/<nome>/`:
+`application/dtos` + `domain/service` (implementa `CrudService<T>`) +
+`presentation/views/{index,create}.vue` + `presentation/components/`.
+Registar a rota em `src/modules/central/common/presentation/routes/index.ts`
+(`meta.middlewares: ["auth", "role:<regra>"]`) e o item de menu em
+`src/common/presentation/components/BitNav.vue`.
 
-- `static tableName: string` — required.
-- `static allowedColumns: string[]` — whitelist for `orderBy` / filters / searchable fields coming from request params. Must override.
-- `static allowedRelations: string[]` — whitelist for `?with[]=...` eager loading.
-- `static sensitiveColumns: string[]` — never returned even if the client requests them in `columns[]`.
-- Column names in dynamic SQL are regex-validated against `SAFE_COL_RE = /^[a-zA-Z_][a-zA-Z0-9_.]*$/` — never bypass this; any new dynamic-column method must run the same check.
+## Convenções Tecnobra
 
-When you add a new model, populate all four static arrays. Request-driven column/relation selection silently drops anything not on the list.
-
-### Request pipeline
-
-`HTTP → Fastify → Controller → Service → Model → MySQL`, with BullMQ queues fanning out asynchronous work (payments, enrolment, messaging, wallet).
-
-Global error handler in `index.ts` translates:
-- AJV validation errors → `422` with Portuguese messages (via `ajv-i18n/pt-BR`), shaped as `{ message, errors: { field: [msgs] } }`
-- `FST_JWT_*` / `FAST_JWT_*` codes → `401`
-- `429` rate-limit passthrough with custom message
-- Everything else → generic `500`
-
-Rate limit is global: **300 req/min**. CORS origin is `config.server.frontendUrl` (single origin, credentials on).
-
-### Socket.IO
-
-Mounted on the same HTTP server in `index.ts` at path `/socket.io`. Clients `join-payment` / `leave-payment` into per-payment rooms so payment-status updates are pushed only to the relevant tab. `app.io` is decorated onto the Fastify instance — access it via `request.server.io` in handlers.
-
-### Reports
-
-Every report endpoint **must include devoluções (refunds)** data, both in the backend payload and the frontend rendering. This is a product requirement, not an implementation detail — don't ship a report that omits refunds.
-
-## Frontend architecture (`front/src/`)
-
-Hexagonal-ish layering split by module:
-
-```
-src/
-  common/             # shared across modules
-    application/      # composables, stores, use-cases, utils
-    domain/           # entities, value objects, types
-    presentation/     # shared components, layouts, views
-  modules/
-    checkout/         # public-facing checkout flow
-      common/
-      features/
-    central/          # admin/back-office (orders, reports, settlements, users, …)
-      common/
-      features/
-  App.vue
-  main.ts
-```
-
-Path aliases (from `vite.config.ts` — use them, don't write relative `../../../` paths):
-
-- `@` → `src`
-- `@common` → `src/common`
-- `@components` → `src/common/presentation/components`
-- `@central` → `src/modules/central`
-
-Feature code belongs under the matching `modules/<module>/features/<feature>/` folder; only promote to `common/` when something is genuinely reused by both `checkout` and `central`.
-
-bootstrap-vue-next components are auto-imported via `unplugin-vue-components` + `BootstrapVueNextResolver` — do not add explicit imports for `<BButton>`, `<BModal>`, etc.
-
-## Environment files
-
-Per `api/` and `front/`: `.env`, `.env-local`, `.env-dev`, `.env-qa`, `.env-prod`. Frontend build modes map to these files via Vite's `--mode` flag (`build:dev` → `.env-dev`, etc.). `FRONTEND_URL` in the API's env gates the single CORS origin.
+- **Tokens QR**: `nanoid(21)` opaco por entidade (`qr_token`), revogável;
+  o QR codifica `${FRONTEND_URL}/c/<token>`; endpoints de check-in exigem
+  autenticação com a regra `portaria`.
+- **Stock**: qualquer mutação de `materiais.stock_atual` acontece dentro de
+  transação (guia incrementa, consumo decrementa).
+- **Socket.IO**: salas por obra (`join-obra` → sala `obra:<id>`); processos
+  externos emitem via `POST /snotify {room, event, payload}` (só localhost).
+- **Notificações**: template é a fonte de verdade (sem template ativo num
+  canal, nada é enviado nesse canal). Canais: sms, whatsapp, email
+  (`EmailService`/nodemailer; `USE_MOCK_EMAIL=true` em dev). Eventos em
+  `src/services/notification/EventVariableRegistry.ts`.
+- **Uploads**: data-URL base64 no corpo JSON → `UploadService.saveDataUrl`
+  (disco local `uploads/<subdir>`), servido em `GET /uploads/:subdir/:filename`.
+- **Migrações**: `db:migrate` DROPA a base de dados. Em produção usar
+  `updateN.sql` + `bun artisan.ts migrate <n>`.

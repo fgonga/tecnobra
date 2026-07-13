@@ -1,6 +1,6 @@
 import { BaseModel } from "./base.model";
 
-export type SentMessageChannel = "sms" | "whatsapp";
+export type SentMessageChannel = "sms" | "whatsapp" | "email";
 export type SentMessageStatus = "sent" | "failed";
 
 export interface ISentMessage {

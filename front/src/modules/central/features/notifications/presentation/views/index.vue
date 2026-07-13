@@ -166,7 +166,7 @@ const currentChannel = ref<INotificationChannel>('sms')
 const templateMap = computed(() => {
   const map: Record<string, Record<INotificationChannel, INotificationTemplate[]>> = {}
   for (const t of templates.value) {
-    if (!map[t.event_type]) map[t.event_type] = { sms: [], whatsapp: [] }
+    if (!map[t.event_type]) map[t.event_type] = { sms: [], whatsapp: [], email: [] }
     map[t.event_type][t.channel]?.push(t)
   }
   return map

@@ -1,12 +1,9 @@
 /*
- *  Copyright © 2021 - 2026
- *  Bantu Internet Technologies, Lda. Todos os direitos reservados.
- *
- *  Schemas AJV para os templates de notificação (SMS / WhatsApp).
+ *  Tecnobra — Schemas AJV para os templates de notificação (SMS / WhatsApp / E-mail).
  */
 
-const EVENTS = ["OrderCreated", "ReferenceGenerated", "ReferenceExpiring", "PaymentReceived", "PaymentFailed", "EnrolmentCompleted", "CartRecovery"];
-const CHANNELS = ["sms", "whatsapp"];
+const EVENTS = ["WorkerCardIssued", "VisitorCardIssued", "UnreturnedToolAlert", "LowStockAlert"];
+const CHANNELS = ["sms", "whatsapp", "email"];
 
 export class NotificationTemplateSchema {
   static store = {
@@ -18,6 +15,7 @@ export class NotificationTemplateSchema {
         channel: { type: "string", enum: CHANNELS },
         language: { type: "string", maxLength: 5 },
         offset_days: { type: ["integer", "null"] },
+        subject: { type: ["string", "null"], maxLength: 255 },
         body: { type: "string", minLength: 1, maxLength: 4000 },
         enabled: { type: "boolean" },
       },
@@ -33,6 +31,7 @@ export class NotificationTemplateSchema {
         channel: { type: "string", enum: CHANNELS },
         language: { type: "string", maxLength: 5 },
         offset_days: { type: ["integer", "null"] },
+        subject: { type: ["string", "null"], maxLength: 255 },
         body: { type: "string", minLength: 1, maxLength: 4000 },
         enabled: { type: "boolean" },
       },

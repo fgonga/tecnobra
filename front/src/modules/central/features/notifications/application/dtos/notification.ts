@@ -1,20 +1,15 @@
 /*
- *  Copyright © 2021 - 2026
- *  Bantu Internet Technologies, Lda. Todos os direitos reservados.
- *
- *  Tipos + tabelas de apresentação para os templates de notificação
- *  (SMS / WhatsApp) do checkout.
+ *  Tecnobra — Tipos + tabelas de apresentação para os templates de
+ *  notificação (SMS / WhatsApp / E-mail).
  */
 
-export type INotificationChannel = 'sms' | 'whatsapp'
+export type INotificationChannel = 'sms' | 'whatsapp' | 'email'
 
 export type INotificationEventType =
-  | 'OrderCreated'
-  | 'ReferenceGenerated'
-  | 'PaymentReceived'
-  | 'PaymentFailed'
-  | 'EnrolmentCompleted'
-  | 'CartRecovery'
+  | 'WorkerCardIssued'
+  | 'VisitorCardIssued'
+  | 'UnreturnedToolAlert'
+  | 'LowStockAlert'
 
 export interface INotificationTemplate {
   id: number
@@ -22,6 +17,7 @@ export interface INotificationTemplate {
   channel: INotificationChannel
   language: string
   offset_days: number | null
+  subject?: string | null
   body: string
   enabled: boolean | number
   created_at?: string
@@ -52,45 +48,42 @@ export interface ISendTestResponse {
 }
 
 export const EVENT_LABELS: Record<INotificationEventType, string> = {
-  OrderCreated: 'Encomenda criada',
-  ReferenceGenerated: 'Referência gerada',
-  PaymentReceived: 'Pagamento confirmado',
-  PaymentFailed: 'Pagamento falhou',
-  EnrolmentCompleted: 'Matrícula concluída',
-  CartRecovery: 'Recuperação de carrinho',
+  WorkerCardIssued: 'Cartão de trabalhador emitido',
+  VisitorCardIssued: 'Cartão de visitante emitido',
+  UnreturnedToolAlert: 'Ferramenta não devolvida',
+  LowStockAlert: 'Stock baixo',
 }
 
 export const EVENT_DESCRIPTIONS: Record<INotificationEventType, string> = {
-  OrderCreated: 'Disparado quando uma nova encomenda é registada no checkout.',
-  ReferenceGenerated: 'Quando é gerada a referência Multicaixa para pagamento.',
-  PaymentReceived: 'Quando o pagamento da encomenda é confirmado.',
-  PaymentFailed: 'Quando uma tentativa de pagamento é recusada ou falha.',
-  EnrolmentCompleted: 'Quando o acesso ao curso é concedido ao aluno.',
-  CartRecovery: 'Lembrete para clientes que não concluíram o pagamento (carrinho abandonado).',
+  WorkerCardIssued: 'Disparado quando o cartão QR de um trabalhador é emitido ou renovado.',
+  VisitorCardIssued: 'Quando é criado um cartão de visitante com janela de validade.',
+  UnreturnedToolAlert: 'Alerta de fim de dia quando um equipamento não foi devolvido.',
+  LowStockAlert: 'Quando um material atinge o stock mínimo definido.',
 }
 
 export const EVENT_ICONS: Record<INotificationEventType, string> = {
-  OrderCreated: 'tabler:shopping-bag-plus',
-  ReferenceGenerated: 'tabler:barcode',
-  PaymentReceived: 'tabler:cash-banknote',
-  PaymentFailed: 'tabler:alert-triangle',
-  EnrolmentCompleted: 'tabler:school',
-  CartRecovery: 'tabler:shopping-cart-exclamation',
+  WorkerCardIssued: 'tabler:id-badge-2',
+  VisitorCardIssued: 'tabler:user-check',
+  UnreturnedToolAlert: 'tabler:tool',
+  LowStockAlert: 'tabler:package-off',
 }
 
 export const CHANNEL_LABELS: Record<INotificationChannel, string> = {
   sms: 'SMS',
   whatsapp: 'WhatsApp',
+  email: 'E-mail',
 }
 
 export const CHANNEL_ICONS: Record<INotificationChannel, string> = {
   sms: 'tabler:message',
   whatsapp: 'tabler:brand-whatsapp',
+  email: 'tabler:mail',
 }
 
 export const CHANNEL_COLORS: Record<INotificationChannel, string> = {
   sms: 'primary',
   whatsapp: 'success',
+  email: 'orange',
 }
 
-export const CHANNELS: INotificationChannel[] = ['sms', 'whatsapp']
+export const CHANNELS: INotificationChannel[] = ['sms', 'whatsapp', 'email']

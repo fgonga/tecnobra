@@ -1,103 +1,110 @@
 /*
- *  Copyright © 2021 - 2026
- *  Bantu Internet Technologies, Lda. Todos os direitos reservados.
- *
- *  Mensagens default por event_type × channel (SMS / WhatsApp).
- *
- *  IMPORTANTE: estes defaults são VERBATIM das mensagens que o sistema já
- *  envia hoje — não são texto inventado. Fontes:
- *    - PaymentReceived / EnrolmentCompleted (SMS) → worker-notification.ts
- *    - CartRecovery (SMS)                          → schedules/tasks/abandonedRemember.ts
- *    - CartRecovery (WhatsApp)                     → recover-payments.ts (buildMessage)
- *
- *  Os eventos sem mensagem fixa no sistema (OrderCreated, ReferenceGenerated,
- *  PaymentFailed — esta última é dinâmica via AppyPayWebHookMessage) NÃO são
- *  seedados: ficam disponíveis no catálogo para o operador criar se quiser.
+ *  Tecnobra — Mensagens default por event_type × channel (SMS / WhatsApp / E-mail).
+ *  Textos em português de Portugal. O operador pode editar/desativar na UI.
  */
 
 export type DefaultTemplate = {
   event_type: string;
-  channel: "sms" | "whatsapp";
+  channel: "sms" | "whatsapp" | "email";
+  subject?: string | null;
   body: string;
   enabled: number;
 };
 
 export const NOTIFICATION_TEMPLATE_DEFAULTS: DefaultTemplate[] = [
-  // ─── Pagamento confirmado (SMS) — worker-notification.ts ───
+  // ─── Cartão de trabalhador emitido ───
   {
-    event_type: "PaymentReceived",
-    channel: "sms",
+    event_type: "WorkerCardIssued",
+    channel: "email",
     enabled: 1,
-    body: "Pagamento {{order.code}} no valor de {{payment.amount}} confirmado. Receberá os acessos do curso por e-mail.",
+    subject: "O seu cartão de acesso à obra {{obra.nome}}",
+    body: `Olá {{trabalhador.primeiro_nome}},
+
+O seu cartão digital de acesso à obra {{obra.nome}} já está disponível.
+
+Apresente o código QR na portaria para registar a entrada e a saída.
+Pode abrir o cartão em qualquer momento através desta ligação:
+{{cartao.link}}
+
+{{brand.name}}`,
   },
-
-  // ─── Acesso ao curso / matrícula concluída (SMS) — worker-notification.ts ───
   {
-    event_type: "EnrolmentCompleted",
-    channel: "sms",
-    enabled: 1,
-    body: `O seu acesso aos cursos da Academia Treesix já está disponível.
-
-Aceda através do link: https://www.academiatreesix.com/users/sign_in
-
-Login: o seu e-mail
-Senha: caso seja o primeiro acesso, a senha será enviada por e-mail ou poderá defini-la clicando em "Esqueceu a senha?".
-
-Após efectuar o login, aceda à opção O meu painel .`,
-  },
-
-  // ─── Recuperação de carrinho (SMS) — schedules/tasks/abandonedRemember.ts ───
-  {
-    event_type: "CartRecovery",
-    channel: "sms",
-    enabled: 1,
-    body: `Hello! Notámos que iniciaste a inscrição em um dos nossos programas de inglês ☺️
-
-Podes finalizar aqui:
-https://checkout.academiatreesix.com/cart/{{order.code}}
-
-Precisas de ajuda? Fala connosco:
-https://wa.me/message/TFRDLMMC2L2TG1`,
-  },
-
-  // ─── Referência a expirar hoje (SMS) — schedules/tasks/referenceExpiryRemember.ts ───
-  {
-    event_type: "ReferenceExpiring",
-    channel: "sms",
-    enabled: 1,
-    body: `A sua referência de pagamento {{payment.reference_number}} (Entidade {{payment.entity}}) no valor de {{payment.amount}} expira hoje ({{payment.expiry}}). Efectue o pagamento para garantir o acesso ao curso.`,
-  },
-
-  // ─── Referência a expirar hoje (WhatsApp) — schedules/tasks/referenceExpiryRemember.ts ───
-  {
-    event_type: "ReferenceExpiring",
+    event_type: "WorkerCardIssued",
     channel: "whatsapp",
+    enabled: 1,
+    body: `Olá {{trabalhador.primeiro_nome}}! O seu cartão de acesso à obra {{obra.nome}} está pronto. Abra e apresente na portaria: {{cartao.link}}`,
+  },
+  {
+    event_type: "WorkerCardIssued",
+    channel: "sms",
     enabled: 0,
-    body: `Olá {{customer.first_name}}! ⏳
-
-A tua referência de pagamento expira *hoje* ({{payment.expiry}}):
-
-Entidade: {{payment.entity}}
-Referência: {{payment.reference_number}}
-Valor: {{payment.amount}}
-
-Efectua o pagamento por Multicaixa para garantires o acesso ao curso. Precisas de ajuda? Fala connosco:
-https://wa.me/message/TFRDLMMC2L2TG1`,
+    body: `{{brand.name}}: o seu cartão de acesso à obra {{obra.nome}} está disponível em {{cartao.link}}`,
   },
 
-  // ─── Recuperação de carrinho (WhatsApp) — recover-payments.ts ───
+  // ─── Cartão de visitante emitido ───
   {
-    event_type: "CartRecovery",
+    event_type: "VisitorCardIssued",
+    channel: "email",
+    enabled: 1,
+    subject: "Cartão de visitante — {{obra.nome}}",
+    body: `Olá {{visitante.nome}},
+
+Foi criado um cartão de visitante para a obra {{obra.nome}}.
+Validade: de {{visitante.valido_de}} até {{visitante.valido_ate}}.
+
+Apresente o código QR na portaria:
+{{cartao.link}}
+
+{{brand.name}}`,
+  },
+  {
+    event_type: "VisitorCardIssued",
     channel: "whatsapp",
-    enabled: 0,
-    body: `Olá {{customer.first_name}}! 👋
+    enabled: 1,
+    body: `Olá {{visitante.nome}}! O seu cartão de visitante da obra {{obra.nome}} (válido até {{visitante.valido_ate}}) está aqui: {{cartao.link}}`,
+  },
 
-Notámos que tiveste uma dificuldade com o pagamento da tua inscrição (ref. {{order.code}}).
+  // ─── Ferramenta não devolvida ───
+  {
+    event_type: "UnreturnedToolAlert",
+    channel: "email",
+    enabled: 1,
+    subject: "Alerta: {{equipamento.nome}} não foi devolvido — {{obra.nome}}",
+    body: `Alerta de fim de dia na obra {{obra.nome}}:
 
-✅ Já está tudo resolvido — podes tentar novamente agora mesmo:
-https://checkout.academiatreesix.com/cart/{{order.code}}
+O equipamento {{equipamento.nome}} ({{equipamento.codigo}}) não foi devolvido.
+Responsável: {{trabalhador.nome}} ({{empresa.nome}}).
 
-Precisas de ajuda? Fala connosco:
-https://wa.me/message/TFRDLMMC2L2TG1`,
+Verifique e regularize a situação.
+
+{{brand.name}}`,
+  },
+  {
+    event_type: "UnreturnedToolAlert",
+    channel: "whatsapp",
+    enabled: 1,
+    body: `⚠️ {{obra.nome}}: {{equipamento.nome}} ({{equipamento.codigo}}) não foi devolvido. Responsável: {{trabalhador.nome}} ({{empresa.nome}}).`,
+  },
+
+  // ─── Stock baixo ───
+  {
+    event_type: "LowStockAlert",
+    channel: "email",
+    enabled: 1,
+    subject: "Alerta de stock baixo: {{material.nome}} — {{obra.nome}}",
+    body: `O material {{material.nome}} na obra {{obra.nome}} atingiu o stock mínimo.
+
+Stock atual: {{material.stock_atual}} {{material.unidade}}
+Stock mínimo: {{material.stock_minimo}} {{material.unidade}}
+
+Considere fazer uma nova encomenda.
+
+{{brand.name}}`,
+  },
+  {
+    event_type: "LowStockAlert",
+    channel: "whatsapp",
+    enabled: 1,
+    body: `⚠️ Stock baixo na obra {{obra.nome}}: {{material.nome}} — {{material.stock_atual}} {{material.unidade}} (mínimo {{material.stock_minimo}}).`,
   },
 ];

@@ -2,8 +2,9 @@ import { BaseModel } from "./base.model";
 import { db } from "../db/db";
 
 export const ALL_SYSTEM_RULES = [
-  "dashboard", "orders", "payments", "courses", "coupons",
-  "users", "reports", "helpers", "configs", "influencers", "*",
+  "dashboard", "obras", "empresas", "trabalhadores", "portaria",
+  "equipamentos", "materiais", "visitantes", "veiculos", "desempenho",
+  "alertas", "reports", "users", "configs", "*",
 ] as const;
 
 export class ProfileModel extends BaseModel {
@@ -186,11 +187,10 @@ export class ProfileModel extends BaseModel {
   // ─── Auto-assign default profile by role ──────────────────────────────────
 
   static readonly ROLE_TO_PROFILE: Record<string, string> = {
-    superadmin: "Superadmin",
+    superadmin: "Administrador",
     admin:      "Administrador",
-    account:    "Contador",
-    helper:     "Suporte",
-    user:       "Utilizador",
+    user:       "Encarregado",
+    helper:     "Portaria",
   };
 
   static async assignDefaultProfile(userId: number, role: string): Promise<void> {

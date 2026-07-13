@@ -12,6 +12,5 @@
  *
  */
 export * from "./AuthSchema";
-export * from "./CheckoutSchema";
 export * from "./MyAccountSchema";
 export * from "./CommonSchema";

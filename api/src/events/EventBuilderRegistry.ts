@@ -1,29 +1,18 @@
-import { PaymentSuccessBuilder } from "./builders/PaymentSuccessBuilder"
-import { PaymentRefundBuilder } from "./builders/PaymentRefundBuilder"
-import { CourseUpdateBuilder } from "./builders/CourseUpdateBuilder"
-import { SettlementPaidBuilder } from "./builders/SettlementPaidBuilder"
-import { SettlementCreatedBuilder } from "./builders/SettlementCreatedBuilder"
-import { SettlementCancelledBuilder } from "./builders/SettlementCancelledBuilder"
-import { SettlementProofUpdatedBuilder } from "./builders/SettlementProofUpdatedBuilder"
-import { InfluencerSyncBuilder } from "./builders/InfluencerSyncBuilder"
-import { CouponUpdatedBuilder } from "./builders/CouponUpdatedBuilder"
+/**
+ * Registo de builders de eventos de sistema.
+ *
+ * Cada builder transforma um evento interno (tabela `events`) no payload a
+ * entregar a sistemas externos. Registar aqui novos builders Tecnobra
+ * (ex.: alertas para sistemas de terceiros) à medida que forem criados.
+ */
 export interface EventPayloadBuilder {
   supports(type: string): boolean
   build(eventData: any): Promise<any>
 }
+
 export class EventBuilderRegistry {
 
-  private static builders: EventPayloadBuilder[] = [
-    new PaymentSuccessBuilder(),
-    new PaymentRefundBuilder(),
-    new CourseUpdateBuilder(),
-    new SettlementPaidBuilder(),
-    new SettlementCreatedBuilder(),
-    new SettlementCancelledBuilder(),
-    new SettlementProofUpdatedBuilder(),
-    new InfluencerSyncBuilder(),
-    new CouponUpdatedBuilder(),
-  ]
+  private static builders: EventPayloadBuilder[] = []
 
   static getBuilder(type: string): EventPayloadBuilder | null {
     return this.builders.find(b => b.supports(type)) || null

@@ -10,6 +10,7 @@ import { BaseCrudService } from "./BaseCrudService";
 import { NotificationTemplateModel } from "../models/notification_template.model";
 import { SmsService, Envelope } from "./SmsService";
 import { WhatsappService } from "./WhatsappService";
+import { EmailService } from "./EmailService";
 import { TemplateRenderer } from "./notification/TemplateRenderer";
 import { EventVariableRegistry } from "./notification/EventVariableRegistry";
 import { ValidationError } from "../exceptions/ValidationError";
@@ -26,6 +27,7 @@ type WritePayload = {
   event_type: string;
   channel: string;
   body: string;
+  subject?: string | null;
   language?: string;
   offset_days?: number | null;
   enabled?: boolean | number;
@@ -78,6 +80,8 @@ export class NotificationTemplateService extends BaseCrudService<typeof Notifica
         await SmsService.send({ to, message: text, type: "sms" } as Envelope);
       } else if (payload.channel === "whatsapp") {
         await WhatsappService.send(to, text);
+      } else if (payload.channel === "email") {
+        await EmailService.send({ to, subject: `[Teste] ${payload.event_type}`, text });
       } else {
         throw new Error(`Canal desconhecido: ${payload.channel}`);
       }
@@ -109,6 +113,7 @@ export class NotificationTemplateService extends BaseCrudService<typeof Notifica
       channel: data.channel,
       language: data.language ?? "pt",
       offset_days: data.offset_days ?? null,
+      subject: data.subject ?? null,
       body: data.body,
       enabled: data.enabled === undefined ? 1 : data.enabled ? 1 : 0,
     };

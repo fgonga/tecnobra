@@ -1,7 +1,7 @@
 import { BaseModel } from "./base.model";
 import { db } from "../db/db";
 
-export type NotificationChannel = "sms" | "whatsapp";
+export type NotificationChannel = "sms" | "whatsapp" | "email";
 
 export interface INotificationTemplate {
   id?: number;
@@ -9,6 +9,7 @@ export interface INotificationTemplate {
   channel: NotificationChannel;
   language: string;
   offset_days: number | null;
+  subject?: string | null;
   body: string;
   enabled: boolean | number;
   created_at?: string;
@@ -23,6 +24,7 @@ export class NotificationTemplateModel extends BaseModel {
     "channel",
     "language",
     "offset_days",
+    "subject",
     "body",
     "enabled",
     "created_at",
@@ -30,7 +32,7 @@ export class NotificationTemplateModel extends BaseModel {
   ];
   static allowedRelations: string[] = [];
 
-  static readonly CHANNELS: NotificationChannel[] = ["sms", "whatsapp"];
+  static readonly CHANNELS: NotificationChannel[] = ["sms", "whatsapp", "email"];
 
   static async create(data: Record<string, any>, connection?: any): Promise<any> {
     return this.genericCreate(data, connection);

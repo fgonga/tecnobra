@@ -16,6 +16,9 @@ export async function dispatchEvents() {
     return
   }
 
+  // Sem webhook externo configurado, não há para onde despachar eventos.
+  if (!config.partner.apiUrl) return
+
   const cfg = await configCache.get()
   const intervalSeconds = cfg.events_dispatch_interval ?? 60
   const intervalMs = intervalSeconds * 1000

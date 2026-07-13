@@ -25,95 +25,38 @@ const modules = [
   {
     navs: [
       {
-        name: "Dashboard",
+        name: "Painel",
         icon: "ti ti-home",
         rules: [
           {
-            name: "Dashboard",
+            name: "Painel",
             route: "dashboard",
             identification: "dashboard",
           },
         ],
       },
+      // Fase 1: Obras, Empresas, Trabalhadores
+      // Fase 2: Portaria, Presenças
+      // Fase 3: Equipamentos, Materiais
+      // Fase 4: Visitantes, Veículos
+      // Fase 5: Desempenho, Alertas, Relatórios
       {
-        name: "Orders",
-        icon: "ti ti-shopping-cart",
-        rules: [{ name: "Pedidos", route: "orders", identification: "orders" }],
-      },
-      {
-        name: "Payments",
-        icon: "ti ti-cash",
-        rules: [
-          { name: "Pagamentos", route: "payments", identification: "payments" },
-        ],
-      },
-      {
-        name: "Faturação",
-        icon: "ti ti-file-invoice",
-        rules: [
-          { name: "Faturação", route: "invoices", identification: "invoices" },
-        ],
-      },
-      {
-        name: "Devoluções",
-        icon: "ti ti-arrow-back-up",
-        rules: [
-          { name: "Devoluções", route: "refunds", identification: "orders" },
-        ],
-      },
-      {
-        name: "Cursos",
-        icon: "ti ti-book",
-        rules: [
-          { name: "Cursos", route: "courses", identification: "courses" },
-        ],
-      },
-      {
-        name: "Parceiros",
-        icon: "ti ti-users",
-        rules: [
-          {
-            name: "Parceiros",
-            route: "partners",
-            identification: "influencers",
-          },
-        ],
-      },
-      {
-        name: "Repasses",
-        icon: "ti ti-transfer",
-        rules: [
-          { name: "Repasses", route: "settlements", identification: "reports" },
-        ],
-      },
-      {
-        name: "Relatórios",
-        icon: "ti ti-report-analytics",
-        rules: [
-          {
-            name: "Relatórios",
-            route: "reports",
-            identification: "reports",
-          },
-        ],
-      },
-      {
-        name: "Configurações",
+        name: "Definições",
         icon: "ti ti-adjustments",
         rules: [
           {
-            name: "Configurações",
+            name: "Definições",
             route: "settings",
             identification: "configs",
           },
         ],
       },
       {
-        name: "Administrador",
+        name: "Administração",
         icon: "ti ti-settings",
         rules: [
           {
-            name: "Administrador",
+            name: "Administração",
             route: "admin",
             identification: "configs",
           },

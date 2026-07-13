@@ -1,5 +1,0 @@
-ALTER TABLE orders
-  ADD COLUMN discount_card DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER discount_coupon,
-  ADD COLUMN card_id MEDIUMINT UNSIGNED NULL AFTER course_id,
-  ADD COLUMN card_name VARCHAR(100) NULL AFTER card_id,
-  ADD COLUMN card_percentage DECIMAL(5,2) NULL DEFAULT 0.00 AFTER card_name;
