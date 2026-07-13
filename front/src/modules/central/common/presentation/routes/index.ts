@@ -38,6 +38,13 @@ export default [
       },
       {
         component: () =>
+          import("@/modules/central/features/presencas/presentation/views/index.vue"),
+        name: "presencas",
+        path: "presencas",
+        meta: { middlewares: ["auth", "role:portaria"] },
+      },
+      {
+        component: () =>
           import("@/modules/central/features/users/presentation/views/index.vue"),
         name: "users",
         path: "users",

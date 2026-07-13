@@ -48,7 +48,14 @@ const modules = [
           { name: "Empresas", route: "empresas", identification: "empresas" },
         ],
       },
-      // Fase 2: Portaria, Presenças
+      {
+        name: "Portaria",
+        icon: "ti ti-scan",
+        rules: [
+          { name: "Portaria (leitor QR)", route: "portaria", identification: "portaria" },
+          { name: "Presenças", route: "presencas", identification: "portaria" },
+        ],
+      },
       // Fase 3: Equipamentos, Materiais
       // Fase 4: Visitantes, Veículos
       // Fase 5: Desempenho, Alertas, Relatórios

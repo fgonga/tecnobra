@@ -27,6 +27,10 @@ import { EmpresasSchema } from "../schema/EmpresasSchema";
 import { TrabalhadoresController } from "../controllers/TrabalhadoresController";
 import { TrabalhadoresSchema } from "../schema/TrabalhadoresSchema";
 import { CardController } from "../controllers/CardController";
+import { ScanController } from "../controllers/ScanController";
+import { ScanSchema } from "../schema/ScanSchema";
+import { MovimentosController } from "../controllers/MovimentosController";
+import { DashboardController } from "../controllers/DashboardController";
 
 type CrudMethods = "index" | "store" | "show" | "update" | "delete";
 
@@ -43,6 +47,8 @@ export class Routes {
         this.crud(fastify, "empresas", new EmpresasController(), EmpresasSchema, null, "empresas");
         this.trabalhadores(fastify);
         this.cards(fastify);
+        this.portaria(fastify);
+        this.dashboard(fastify);
         this.notifications(fastify);
         this.insights(fastify);
         this.profiles(fastify);
@@ -93,6 +99,19 @@ export class Routes {
         fastify.post("/api/v1/trabalhadores/:id/emitir-cartao",  { preHandler: guard }, TrabalhadoresController.emitirCartao);
         fastify.post("/api/v1/trabalhadores/:id/revogar-cartao", { preHandler: guard }, TrabalhadoresController.revogarCartao);
         this.crud(fastify, "trabalhadores", new TrabalhadoresController(), TrabalhadoresSchema, null, "trabalhadores");
+    }
+
+    static portaria(fastify: FastifyInstance) {
+        const guard = [requireSystemRule(fastify, "portaria")];
+        fastify.post("/api/v1/scan/resolve", { preHandler: guard, schema: ScanSchema.resolve }, ScanController.resolve);
+        fastify.post("/api/v1/scan/checkin", { preHandler: guard, schema: ScanSchema.checkin }, ScanController.checkin);
+        fastify.get("/api/v1/obras/:id/ocupacao", { preHandler: guard }, ScanController.ocupacao);
+        // Histórico de movimentos (leitura)
+        this.crud(fastify, "movimentos", new MovimentosController(), null, { only: ["index", "show"] }, "portaria");
+    }
+
+    static dashboard(fastify: FastifyInstance) {
+        fastify.get("/api/v1/report-dashboard", { preHandler: [requireSystemRule(fastify, "dashboard")] }, DashboardController.dashboard);
     }
 
     static cards(fastify: FastifyInstance) {

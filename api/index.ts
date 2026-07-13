@@ -125,14 +125,14 @@ app.decorate("io", io) // agora permitido, antes do start
 io.on("connection", socket => {
   console.log("Cliente conectado:", socket.id)
 
-  socket.on("join-payment", (paymentId: string) => {
-    socket.join(paymentId)
-    console.log(`Socket ${socket.id} entrou na sala ${paymentId}`)
+  socket.on("join-obra", (obraId: string | number) => {
+    socket.join(`obra:${obraId}`)
+    console.log(`Socket ${socket.id} entrou na sala obra:${obraId}`)
   })
 
-  socket.on("leave-payment", (paymentId: string) => {
-    socket.leave(paymentId)
-    console.log(`Socket ${socket.id} saiu da sala ${paymentId}`)
+  socket.on("leave-obra", (obraId: string | number) => {
+    socket.leave(`obra:${obraId}`)
+    console.log(`Socket ${socket.id} saiu da sala obra:${obraId}`)
   })
 
   socket.on("disconnect", () => console.log("Cliente desconectado:", socket.id))
