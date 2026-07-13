@@ -1,0 +1,63 @@
+{
+  "name": "api",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.2",
+    "@types/socket.io": "^3.0.2",
+    "bun": "^1.3.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "dev": "bun --watch index.ts && pm2 start decosystem.config.cjs",
+    "mock": "bun run src/mock-server/index.ts",
+    "fresh": "bun run fresh.ts",
+    "artisan": "bun artisan.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@bit/appypayts": "github:bit-ao/appypayts#main",
+    "@bit/ceuts": "github:bit-ao/ceuts#main",
+    "@bit/thinkificts": "github:bit-ao/thinkificts#main",
+    "@bull-board/api": "^6.21.3",
+    "@bull-board/express": "^6.21.3",
+    "@fastify/cors": "^11.2.0",
+    "@fastify/express": "^4.0.6",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/jwt": "^10.1.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "@fastify/schedule": "^6.0.0",
+    "@socket.io/admin-ui": "^0.5.1",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "ajv-i18n": "^4.2.0",
+    "argon2": "^0.44.0",
+    "axios": "^1.18.1",
+    "better-sqlite3": "^12.11.1",
+    "bullmq": "^5.79.1",
+    "commander": "^14.0.3",
+    "dayjs": "^1.11.21",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "express-basic-auth": "^1.2.1",
+    "fastify": "^5.8.5",
+    "jwt": "^0.2.0",
+    "mysql2": "^3.22.5",
+    "nanoid": "^5.1.15",
+    "p-limit": "^7.3.0",
+    "redis": "^5.12.1",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "toad-scheduler": "^3.1.0",
+    "tsx": "^4.22.4",
+    "uuid": "^13.0.2",
+    "vue-multiselect": "^3.5.0",
+    "winston": "^3.19.0"
+  }
+}

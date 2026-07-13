@@ -1,0 +1,15 @@
+[Unit]
+Description=Redirector - Geo Redirection Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/redirector
+WorkingDirectory=/usr/local/bin
+Restart=always
+RestartSec=5
+Environment="PORT=9003"
+User=www-data
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
