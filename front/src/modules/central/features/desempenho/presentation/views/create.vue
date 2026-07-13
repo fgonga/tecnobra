@@ -8,33 +8,42 @@
     @submit="handleSubmit"
   >
     <div class="row">
-      <FormField
+      <EntitySelectField
         label="Obra"
         v-model="form.obra_id"
         required
-        type="select"
-        :options="obraOptions"
+        :service="ObrasService"
+        :searchFields="['nome', 'codigo', 'cliente']"
+        :templateSubtitle="(o) => o.codigo"
+        placeholder="Procurar obra…"
         :validationError="v$.obra_id.$error ? v$.obra_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('obra_id')"
         columnClass="col-md-6"
-        @update:modelValue="carregarTrabalhadores"
+        @update:modelValue="onObraChange"
       />
-      <FormField
+      <EntitySelectField
         label="Trabalhador"
         v-model="form.trabalhador_id"
         required
-        type="select"
-        :options="trabalhadorOptions"
+        :service="TrabalhadoresService"
+        :searchFields="['nome', 'funcao', 'documento']"
+        :templateSubtitle="(t) => t.funcao"
+        :additionalFilters="trabalhadorFilters"
+        :watchKey="obraWatch"
+        :disabled="!form.obra_id"
+        placeholder="Procurar trabalhador…"
         :validationError="v$.trabalhador_id.$error ? v$.trabalhador_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('trabalhador_id')"
         columnClass="col-md-6"
       />
-      <FormField
+      <EntitySelectField
         label="Métrica"
         v-model="form.metrica_id"
         required
-        type="select"
-        :options="metricaOptions"
+        :service="MetricasEntity"
+        :searchFields="['nome']"
+        :templateSubtitle="(m) => m.unidade"
+        placeholder="Procurar métrica…"
         :validationError="v$.metrica_id.$error ? v$.metrica_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('metrica_id')"
         columnClass="col-md-4"
@@ -63,14 +72,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
 import { required } from '@common/application/utils/validators'
 import ModalForm from '@components/ModalForm.vue'
 import FormField from '@components/FormField.vue'
+import EntitySelectField from '@components/EntitySelectField.vue'
 import { useModalForm } from '@common/presentation/hooks/useModalForm'
 import type { IDesempenho } from '../../domain/service/DesempenhosService'
-import { MetricasService } from '../../domain/service/DesempenhosService'
+import { MetricasEntity } from '../../domain/service/DesempenhosService'
 import { ObrasService } from '@/modules/central/features/obras/domain/service/ObrasService'
 import { TrabalhadoresService } from '@/modules/central/features/trabalhadores/domain/service/TrabalhadoresService'
 
@@ -89,28 +99,17 @@ const props = defineProps({
   defaults: Object,
 })
 
-const obraOptions = ref<{ label: string; value: number }[]>([])
-const trabalhadorOptions = ref<{ label: string; value: number }[]>([])
-const metricaOptions = ref<{ label: string; value: number }[]>([])
+// Trabalhadores filtrados pela obra selecionada
+const obraWatch = ref(0)
+const trabalhadorFilters = computed(() => ({
+  filters: form.obra_id ? [{ field: 'obra_id', operator: '=', value: form.obra_id }] : [],
+}))
 
-async function carregarTrabalhadores() {
-  if (!form.obra_id) return
-  const { data } = await TrabalhadoresService.index({
-    perPage: 200,
-    page: 1,
-    filters: [{ field: 'obra_id', operator: '=', value: form.obra_id }],
-  } as any)
-  trabalhadorOptions.value = (data.data ?? []).map((t: any) => ({ label: t.nome, value: t.id }))
+function onObraChange() {
+  // Limpa o trabalhador e força recarregar as opções da nova obra
+  form.trabalhador_id = null
+  obraWatch.value++
 }
-
-onMounted(async () => {
-  const [obras, metricas] = await Promise.all([
-    ObrasService.index({ perPage: 100, page: 1 } as any),
-    MetricasService.index(),
-  ])
-  obraOptions.value = (obras.data.data ?? []).map((o: any) => ({ label: `${o.codigo} — ${o.nome}`, value: o.id }))
-  metricaOptions.value = ((metricas.data as any).data ?? []).map((m: any) => ({ label: `${m.nome} (${m.unidade})`, value: m.id }))
-})
 
 const { modal, busy, form, v$, show, hide, resetForm, handleSubmit } = useModalForm<Partial<IDesempenho>>({
   defaultValues: defaultDesempenho,

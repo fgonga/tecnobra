@@ -25,12 +25,14 @@
         columnClass="col-md-4"
         hint="Ex.: FER-001"
       />
-      <FormField
+      <EntitySelectField
         label="Obra"
         v-model="form.obra_id"
         required
-        type="select"
-        :options="obraOptions"
+        :service="ObrasService"
+        :searchFields="['nome', 'codigo', 'cliente']"
+        :templateSubtitle="(o) => o.codigo"
+        placeholder="Procurar obra…"
         :validationError="v$.obra_id.$error ? v$.obra_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('obra_id')"
         columnClass="col-md-6"
@@ -79,10 +81,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { required } from '@common/application/utils/validators'
 import ModalForm from '@components/ModalForm.vue'
 import FormField from '@components/FormField.vue'
+import EntitySelectField from '@components/EntitySelectField.vue'
 import { useModalForm } from '@common/presentation/hooks/useModalForm'
 import type { IEquipamento } from '../../application/dtos'
 import { ObrasService } from '@/modules/central/features/obras/domain/service/ObrasService'
@@ -102,12 +104,6 @@ const props = defineProps({
   defaults: Object,
 })
 
-const obraOptions = ref<{ label: string; value: number }[]>([])
-
-onMounted(async () => {
-  const { data } = await ObrasService.index({ perPage: 100, page: 1 } as any)
-  obraOptions.value = (data.data ?? []).map((o: any) => ({ label: `${o.codigo} — ${o.nome}`, value: o.id }))
-})
 
 const { modal, busy, form, v$, show, hide, resetForm, handleSubmit } = useModalForm<Partial<IEquipamento>>({
   defaultValues: defaultEquipamento,

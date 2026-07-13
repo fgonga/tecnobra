@@ -38,10 +38,43 @@
       <!-- Modal registar consumo -->
       <BModal v-model="mostrarModal" title="Registar consumo" :no-close-on-backdrop="true" @hidden="reset">
         <div class="row">
-          <FormField label="Obra" v-model="form.obra_id" required type="select" :options="obraOptions" columnClass="col-md-6" @update:modelValue="carregarMateriais" />
-          <FormField label="Material" v-model="form.material_id" required type="select" :options="materialOptions" columnClass="col-md-6" />
+          <EntitySelectField
+            label="Obra"
+            v-model="form.obra_id"
+            required
+            :service="ObrasService"
+            :searchFields="['nome', 'codigo', 'cliente']"
+            :templateSubtitle="(o) => o.codigo"
+            placeholder="Procurar obra…"
+            columnClass="col-md-6"
+            @update:modelValue="onObraChange"
+          />
+          <EntitySelectField
+            label="Material"
+            v-model="form.material_id"
+            required
+            :service="MateriaisService"
+            :searchFields="['nome', 'categoria']"
+            :templateSubtitle="(m) => `${Number(m.stock_atual)} ${m.unidade}`"
+            :additionalFilters="materiaisFilters"
+            :watchKey="obraWatch"
+            :disabled="!form.obra_id"
+            placeholder="Procurar material…"
+            columnClass="col-md-6"
+          />
           <FormField label="Quantidade" v-model="form.quantidade" required type="number" columnClass="col-md-6" />
-          <FormField label="Trabalhador (opcional)" v-model="form.trabalhador_id" type="select" :options="trabalhadorOptions" columnClass="col-md-6" />
+          <EntitySelectField
+            label="Trabalhador (opcional)"
+            v-model="form.trabalhador_id"
+            :service="TrabalhadoresService"
+            :searchFields="['nome', 'funcao']"
+            :templateSubtitle="(t) => t.funcao"
+            :additionalFilters="trabalhadorFilters"
+            :watchKey="obraWatch"
+            :disabled="!form.obra_id"
+            placeholder="Procurar trabalhador…"
+            columnClass="col-md-6"
+          />
           <FormField label="Observações" v-model="form.obs" type="text" columnClass="col-12" />
         </div>
         <template #footer>
@@ -56,9 +89,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import dayjs from 'dayjs'
 import FormField from '@components/FormField.vue'
+import EntitySelectField from '@components/EntitySelectField.vue'
 import notify from '@common/application/utils/notification'
 import { ConsumosService } from '../../domain/service/ConsumosService'
 import { useCrud } from '@common/presentation/hooks/useCrud'
@@ -70,9 +104,6 @@ const fmt = (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm')
 
 const mostrarModal = ref(false)
 const busy = ref(false)
-const obraOptions = ref<{ label: string; value: number }[]>([])
-const materialOptions = ref<{ label: string; value: number }[]>([])
-const trabalhadorOptions = ref<{ label: string; value: number }[]>([])
 
 const form = reactive({
   obra_id: null as number | null,
@@ -81,6 +112,21 @@ const form = reactive({
   trabalhador_id: null as number | null,
   obs: '',
 })
+
+// Material e trabalhador filtrados pela obra selecionada
+const obraWatch = ref(0)
+const materiaisFilters = computed(() => ({
+  filters: form.obra_id ? [{ field: 'obra_id', operator: '=', value: form.obra_id }] : [],
+}))
+const trabalhadorFilters = computed(() => ({
+  filters: form.obra_id ? [{ field: 'obra_id', operator: '=', value: form.obra_id }] : [],
+}))
+
+function onObraChange() {
+  form.material_id = null
+  form.trabalhador_id = null
+  obraWatch.value++
+}
 
 const valido = computed(() => form.obra_id && form.material_id && Number(form.quantidade) > 0)
 
@@ -100,19 +146,6 @@ function reset() {
   form.quantidade = null
   form.trabalhador_id = null
   form.obs = ''
-}
-
-async function carregarMateriais() {
-  if (!form.obra_id) return
-  const [mats, trabs] = await Promise.all([
-    MateriaisService.index({ perPage: 200, page: 1, filters: [{ field: 'obra_id', operator: '=', value: form.obra_id }] } as any),
-    TrabalhadoresService.index({ perPage: 200, page: 1, filters: [{ field: 'obra_id', operator: '=', value: form.obra_id }] } as any),
-  ])
-  materialOptions.value = (mats.data.data ?? []).map((m: any) => ({
-    label: `${m.nome} (${Number(m.stock_atual)} ${m.unidade})`,
-    value: m.id,
-  }))
-  trabalhadorOptions.value = (trabs.data.data ?? []).map((t: any) => ({ label: t.nome, value: t.id }))
 }
 
 async function guardar() {
@@ -136,9 +169,4 @@ async function guardar() {
     busy.value = false
   }
 }
-
-onMounted(async () => {
-  const { data } = await ObrasService.index({ perPage: 100, page: 1 } as any)
-  obraOptions.value = (data.data ?? []).map((o: any) => ({ label: `${o.codigo} — ${o.nome}`, value: o.id }))
-})
 </script>

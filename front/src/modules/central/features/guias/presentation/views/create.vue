@@ -11,9 +11,27 @@
     @hidden="reset"
   >
     <div class="row">
-      <FormField label="Obra" v-model="form.obra_id" required type="select" :options="obraOptions" columnClass="col-md-6" @update:modelValue="carregarMateriais" />
+      <EntitySelectField
+        label="Obra"
+        v-model="form.obra_id"
+        required
+        :service="ObrasService"
+        :searchFields="['nome', 'codigo', 'cliente']"
+        :templateSubtitle="(o) => o.codigo"
+        placeholder="Procurar obra…"
+        columnClass="col-md-6"
+        @update:modelValue="carregarMateriais"
+      />
       <FormField label="N.º da guia" v-model="form.numero" required type="text" columnClass="col-md-6" hint="Ex.: GR-2026-014" />
-      <FormField label="Fornecedor (empresa registada)" v-model="form.fornecedor_empresa_id" type="select" :options="fornecedorOptions" columnClass="col-md-6" />
+      <EntitySelectField
+        label="Fornecedor (empresa registada)"
+        v-model="form.fornecedor_empresa_id"
+        :service="EmpresasService"
+        :searchFields="['nome', 'nif', 'contacto_nome']"
+        :additionalFilters="{ filters: [{ field: 'tipo', operator: '=', value: 'fornecedor' }] }"
+        placeholder="Procurar fornecedor…"
+        columnClass="col-md-6"
+      />
       <FormField label="Fornecedor (texto livre)" v-model="form.fornecedor_nome" type="text" columnClass="col-md-6" />
       <FormField label="Data de entrega" v-model="form.data_entrega" required type="datetime" columnClass="col-md-6" />
       <div class="col-md-6 mb-3">
@@ -59,8 +77,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import FormField from '@components/FormField.vue'
+import EntitySelectField from '@components/EntitySelectField.vue'
 import notify from '@common/application/utils/notification'
 import { GuiasService, type IGuiaItem } from '../../domain/service/GuiasService'
 import { ObrasService } from '@/modules/central/features/obras/domain/service/ObrasService'
@@ -71,8 +90,6 @@ const emit = defineEmits(['created'])
 
 const aberto = ref(false)
 const busy = ref(false)
-const obraOptions = ref<{ label: string; value: number }[]>([])
-const fornecedorOptions = ref<{ label: string; value: number }[]>([])
 const materiais = ref<any[]>([])
 
 const form = reactive({
@@ -153,15 +170,6 @@ async function guardar() {
     busy.value = false
   }
 }
-
-onMounted(async () => {
-  const [obras, empresas] = await Promise.all([
-    ObrasService.index({ perPage: 100, page: 1 } as any),
-    EmpresasService.index({ perPage: 100, page: 1, filters: [{ field: 'tipo', operator: '=', value: 'fornecedor' }] } as any),
-  ])
-  obraOptions.value = (obras.data.data ?? []).map((o: any) => ({ label: `${o.codigo} — ${o.nome}`, value: o.id }))
-  fornecedorOptions.value = (empresas.data.data ?? []).map((e: any) => ({ label: e.nome, value: e.id }))
-})
 
 defineExpose({ abrir })
 </script>

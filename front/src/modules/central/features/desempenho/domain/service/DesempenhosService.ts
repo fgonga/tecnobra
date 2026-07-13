@@ -32,8 +32,20 @@ export const DesempenhosService: CrudService<IDesempenho> = {
   },
 }
 
-export const MetricasService = {
-  index: async () => {
-    return await API.get('/api/v1/metricas-desempenho', { params: { perPage: 100, page: 1 } })
+export const MetricasEntity: CrudService<any> = {
+  index: async (filters) => {
+    return await API.get('/api/v1/metricas-desempenho', { params: filters })
+  },
+  show: async (id, filters) => {
+    return await API.get(`/api/v1/metricas-desempenho/${id}`, { params: filters })
+  },
+  store: async (data) => {
+    return await API.post('/api/v1/metricas-desempenho', data)
+  },
+  update: async (id, data) => {
+    return await API.put(`/api/v1/metricas-desempenho/${id}`, data)
+  },
+  destroy: async (id) => {
+    return await API.delete(`/api/v1/metricas-desempenho/${id}`)
   },
 }

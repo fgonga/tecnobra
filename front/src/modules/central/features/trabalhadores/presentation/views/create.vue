@@ -25,22 +25,25 @@
         columnClass="col-md-4"
         hint="Ex.: Pedreiro, Eletricista"
       />
-      <FormField
+      <EntitySelectField
         label="Obra"
         v-model="form.obra_id"
         required
-        type="select"
-        :options="obraOptions"
+        :service="ObrasService"
+        :searchFields="['nome', 'codigo', 'cliente']"
+        :templateSubtitle="(o) => o.codigo"
+        placeholder="Procurar obra…"
         :validationError="v$.obra_id.$error ? v$.obra_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('obra_id')"
         columnClass="col-md-6"
       />
-      <FormField
+      <EntitySelectField
         label="Empresa"
         v-model="form.empresa_id"
         required
-        type="select"
-        :options="empresaOptions"
+        :service="EmpresasService"
+        :searchFields="['nome', 'nif', 'contacto_nome']"
+        placeholder="Procurar empresa…"
         :validationError="v$.empresa_id.$error ? v$.empresa_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('empresa_id')"
         columnClass="col-md-6"
@@ -88,10 +91,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { required } from '@common/application/utils/validators'
 import ModalForm from '@components/ModalForm.vue'
 import FormField from '@components/FormField.vue'
+import EntitySelectField from '@components/EntitySelectField.vue'
 import { useModalForm } from '@common/presentation/hooks/useModalForm'
 import type { ITrabalhador } from '../../application/dtos'
 import { TRABALHADOR_ESTADOS } from '../../application/dtos'
@@ -116,18 +120,7 @@ const props = defineProps({
   defaults: Object,
 })
 
-const obraOptions = ref<{ label: string; value: number }[]>([])
-const empresaOptions = ref<{ label: string; value: number }[]>([])
 const fotoPreview = ref<string | null>(null)
-
-onMounted(async () => {
-  const [obras, empresas] = await Promise.all([
-    ObrasService.index({ perPage: 100, page: 1 } as any),
-    EmpresasService.index({ perPage: 100, page: 1 } as any),
-  ])
-  obraOptions.value = (obras.data.data ?? []).map((o: any) => ({ label: `${o.codigo} — ${o.nome}`, value: o.id }))
-  empresaOptions.value = (empresas.data.data ?? []).map((e: any) => ({ label: e.nome, value: e.id }))
-})
 
 /** Redimensiona a foto no cliente (≤1024px) e guarda como data-URL no form. */
 function onFotoChange(event: Event) {

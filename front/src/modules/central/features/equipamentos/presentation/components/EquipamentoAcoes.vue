@@ -43,12 +43,16 @@
         <div class="card-body">
           <h4>Levantamento</h4>
           <div class="row">
-            <FormField
+            <EntitySelectField
               label="Trabalhador responsável"
               v-model="levantarForm.trabalhador_id"
-              type="select"
               required
-              :options="trabalhadorOptions"
+              :service="TrabalhadoresService"
+              :searchFields="['nome', 'funcao']"
+              :templateSubtitle="(t) => t.funcao"
+              :additionalFilters="trabalhadorFilters"
+              :watchKey="equipamento?.id ?? 0"
+              placeholder="Procurar trabalhador…"
               columnClass="col-md-6"
             />
             <FormField
@@ -122,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { IconTool, IconBuilding, IconTag, IconUser, IconHistory } from '@tabler/icons-vue'
 import dayjs from 'dayjs'
 import LoadingState from '@components/LoadingState.vue'
@@ -132,6 +136,7 @@ import InfoSection from '@components/InfoSection.vue'
 import InfoCard from '@components/InfoCard.vue'
 import ResponsiveGrid from '@components/ResponsiveGrid.vue'
 import FormField from '@components/FormField.vue'
+import EntitySelectField from '@components/EntitySelectField.vue'
 import notify from '@common/application/utils/notification'
 import { EquipamentoAcoesService } from '../../domain/service/EquipamentosService'
 import { TrabalhadoresService } from '@/modules/central/features/trabalhadores/domain/service/TrabalhadoresService'
@@ -147,10 +152,19 @@ const busy = ref(false)
 const mostrarLevantar = ref(false)
 const mostrarDevolver = ref(false)
 const historico = ref<any[]>([])
-const trabalhadorOptions = ref<{ label: string; value: number }[]>([])
 
 const levantarForm = reactive({ trabalhador_id: null as number | null, devolucao_prevista: null as string | null, obs: '' })
 const devolverForm = reactive({ estado_devolucao: 'ok', obs: '' })
+
+// Trabalhadores ativos da obra do equipamento
+const trabalhadorFilters = computed(() => ({
+  filters: props.equipamento?.obra_id
+    ? [
+        { field: 'obra_id', operator: '=', value: props.equipamento.obra_id },
+        { field: 'estado', operator: '=', value: 'ativo' },
+      ]
+    : [],
+}))
 
 const fmt = (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm')
 
@@ -158,19 +172,6 @@ async function carregarHistorico() {
   if (!props.equipamento?.id) return
   const { data } = await EquipamentoAcoesService.historico(props.equipamento.id)
   historico.value = data.data ?? []
-}
-
-async function carregarTrabalhadores() {
-  if (!props.equipamento?.obra_id) return
-  const { data } = await TrabalhadoresService.index({
-    perPage: 200,
-    page: 1,
-    filters: [
-      { field: 'obra_id', operator: '=', value: props.equipamento.obra_id },
-      { field: 'estado', operator: '=', value: 'ativo' },
-    ],
-  } as any)
-  trabalhadorOptions.value = (data.data ?? []).map((t: any) => ({ label: t.nome, value: t.id }))
 }
 
 async function levantar() {
@@ -210,7 +211,6 @@ async function devolver() {
 
 onMounted(() => {
   carregarHistorico()
-  carregarTrabalhadores()
 })
 watch(
   () => props.equipamento?.id,
@@ -218,7 +218,6 @@ watch(
     mostrarLevantar.value = false
     mostrarDevolver.value = false
     carregarHistorico()
-    carregarTrabalhadores()
   }
 )
 </script>

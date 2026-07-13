@@ -17,12 +17,14 @@
         :serverError="form.errors?.get('nome')"
         columnClass="col-md-6"
       />
-      <FormField
+      <EntitySelectField
         label="Obra"
         v-model="form.obra_id"
         required
-        type="select"
-        :options="obraOptions"
+        :service="ObrasService"
+        :searchFields="['nome', 'codigo', 'cliente']"
+        :templateSubtitle="(o) => o.codigo"
+        placeholder="Procurar obra…"
         :validationError="v$.obra_id.$error ? v$.obra_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('obra_id')"
         columnClass="col-md-6"
@@ -46,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { required } from '@common/application/utils/validators'
 import ModalForm from '@components/ModalForm.vue'
 import FormField from '@components/FormField.vue'
@@ -73,12 +75,6 @@ const props = defineProps({
   defaults: Object,
 })
 
-const obraOptions = ref<{ label: string; value: number }[]>([])
-
-onMounted(async () => {
-  const { data } = await ObrasService.index({ perPage: 100, page: 1 } as any)
-  obraOptions.value = (data.data ?? []).map((o: any) => ({ label: `${o.codigo} — ${o.nome}`, value: o.id }))
-})
 
 const toSql = (v?: string | null) => {
   if (!v) return null

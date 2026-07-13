@@ -35,12 +35,14 @@
         columnClass="col-md-6"
         hint="Confirme sempre a leitura do OCR"
       />
-      <FormField
+      <EntitySelectField
         label="Obra"
         v-model="form.obra_id"
         required
-        type="select"
-        :options="obraOptions"
+        :service="ObrasService"
+        :searchFields="['nome', 'codigo', 'cliente']"
+        :templateSubtitle="(o) => o.codigo"
+        placeholder="Procurar obra…"
         :validationError="v$.obra_id.$error ? v$.obra_id.$errors[0].$message.toString() : ''"
         :serverError="form.errors?.get('obra_id')"
         columnClass="col-md-6"
@@ -66,10 +68,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { required } from '@common/application/utils/validators'
 import ModalForm from '@components/ModalForm.vue'
 import FormField from '@components/FormField.vue'
+import EntitySelectField from '@components/EntitySelectField.vue'
 import { useModalForm } from '@common/presentation/hooks/useModalForm'
 import type { IVeiculo } from '../../domain/service/VeiculosService'
 import { VEICULO_TIPOS, PlateOcrService } from '../../domain/service/VeiculosService'
@@ -91,15 +94,9 @@ const props = defineProps({
   defaults: Object,
 })
 
-const obraOptions = ref<{ label: string; value: number }[]>([])
 const fotoPreview = ref<string | null>(null)
 const ocrBusy = ref(false)
 const ocrResultado = ref<{ matricula: string | null; confianca: number; observacao?: string | null } | null>(null)
-
-onMounted(async () => {
-  const { data } = await ObrasService.index({ perPage: 100, page: 1 } as any)
-  obraOptions.value = (data.data ?? []).map((o: any) => ({ label: `${o.codigo} — ${o.nome}`, value: o.id }))
-})
 
 /** Redimensiona a foto (≤1280px), guarda-a no form e tenta o OCR. */
 function onFoto(event: Event) {
