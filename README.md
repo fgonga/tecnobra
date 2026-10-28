@@ -11,6 +11,16 @@ inteligentes e relatórios em tempo real.
 
 ## Arranque rápido (desenvolvimento)
 
+> No Windows, seguir [docs/WINDOWS.md](docs/WINDOWS.md).
+
+Requisitos: Bun ≥ 1.3, Node 20.19+/22.12+, MySQL 8 e Redis.
+Antes de arrancar, criar os ficheiros de ambiente a partir dos exemplos:
+
+```bash
+cp api/.env-example api/.env      # preencher DB_* e JWT_SECRET
+cp front/.env-example front/.env
+```
+
 ```bash
 # Backend
 cd api
